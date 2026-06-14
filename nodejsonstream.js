@@ -34,6 +34,8 @@ function jsonstream_new(handler)
 	result.mode = JSONSTREAM_MODE_VAL;
 	result.sz = 0;
 	result.uescape = "";
+	result.c_comment_seen = false;
+	result.c_comment_seen_star = false;
 	result.cpp_comment_seen = false;
 	result.comment_seen_preliminary = false;
 	result.comments = false;
@@ -100,6 +102,7 @@ function jsonstream_strip_comment(jsonstream, buf, start, i, sz)
 		if (jsonstream.comments &&
 		    !jsonstream.comment_seen_preliminary &&
 		    !jsonstream.cpp_comment_seen &&
+		    !jsonstream.c_comment_seen &&
 		    buf[start+i] == '/' && (
 		      jsonstream.mode == JSONSTREAM_MODE_COLON ||
 		      jsonstream.mode == JSONSTREAM_MODE_COMMA ||
@@ -115,6 +118,14 @@ function jsonstream_strip_comment(jsonstream, buf, start, i, sz)
 		}
 		if (jsonstream.comment_seen_preliminary)
 		{
+			if (buf[start+i] == '*')
+			{
+				jsonstream.comment_seen_preliminary = false;
+				jsonstream.c_comment_seen = true;
+				jsonstream.val = "";
+				i++;
+				continue;
+			}
 			if (buf[start+i] != '/')
 			{
 				throw new Error("illegal comment");
@@ -122,6 +133,36 @@ function jsonstream_strip_comment(jsonstream, buf, start, i, sz)
 			jsonstream.comment_seen_preliminary = false;
 			jsonstream.cpp_comment_seen = true;
 			jsonstream.val = "";
+			i++;
+			continue;
+		}
+		if (jsonstream.c_comment_seen)
+		{
+			if (buf[start+i] == '*')
+			{
+				jsonstream.c_comment_seen_star = true;
+			}
+			else if (jsonstream.c_comment_seen_star && buf[start+i] == '/')
+			{
+				jsonstream.c_comment_seen = false;
+				if (jsonstream.handler.handle_comment)
+				{
+					ret = jsonstream.handler.handle_comment(jsonstream, jsonstream.comma_seen, jsonstream.val);
+					if (ret != 0)
+					{
+						return ret;
+					}
+				}
+			}
+			else
+			{
+				if (jsonstream.c_comment_seen_star)
+				{
+					jsonstream_put_val(jsonstream, '*');
+				}
+				jsonstream.c_comment_seen_star = false;
+				jsonstream_put_val(jsonstream, buf[start+i]);
+			}
 			i++;
 			continue;
 		}
@@ -293,6 +334,7 @@ function jsonstream_feed(jsonstream, buf, start, sz, eof)
 		if (jsonstream.comments &&
 		    !jsonstream.comment_seen_preliminary &&
 		    !jsonstream.cpp_comment_seen &&
+		    !jsonstream.c_comment_seen &&
 		    buf[start+i] == '/' && (
 		      jsonstream.mode == JSONSTREAM_MODE_COLON ||
 		      jsonstream.mode == JSONSTREAM_MODE_COMMA ||
@@ -307,6 +349,13 @@ function jsonstream_feed(jsonstream, buf, start, sz, eof)
 		}
 		if (jsonstream.comment_seen_preliminary)
 		{
+			if (buf[start+i] == '*')
+			{
+				jsonstream.comment_seen_preliminary = false;
+				jsonstream.c_comment_seen = true;
+				jsonstream.val = "";
+				continue;
+			}
 			if (buf[start+i] != '/')
 			{
 				throw new Error("illegal comment");
@@ -314,6 +363,35 @@ function jsonstream_feed(jsonstream, buf, start, sz, eof)
 			jsonstream.comment_seen_preliminary = false;
 			jsonstream.cpp_comment_seen = true;
 			jsonstream.val = "";
+			continue;
+		}
+		if (jsonstream.c_comment_seen)
+		{
+			if (buf[start+i] == '*')
+			{
+				jsonstream.c_comment_seen_star = true;
+			}
+			else if (jsonstream.c_comment_seen_star && buf[start+i] == '/')
+			{
+				jsonstream.c_comment_seen = false;
+				if (jsonstream.handler.handle_comment)
+				{
+					ret = jsonstream.handler.handle_comment(jsonstream, jsonstream.comma_seen, jsonstream.val);
+					if (ret != 0)
+					{
+						return ret;
+					}
+				}
+			}
+			else
+			{
+				if (jsonstream.c_comment_seen_star)
+				{
+					jsonstream_put_val(jsonstream, '*');
+				}
+				jsonstream.c_comment_seen_star = false;
+				jsonstream_put_val(jsonstream, buf[start+i]);
+			}
 			continue;
 		}
 		if (jsonstream.cpp_comment_seen)
