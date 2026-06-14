@@ -30,7 +30,7 @@ JSONSTREAM_MODE_NUMBER = 16;
  */
 function jsonstream_new(handler)
 {
-	result = {};
+	var result = {};
 	result.mode = JSONSTREAM_MODE_VAL;
 	result.sz = 0;
 	result.uescape = "";
