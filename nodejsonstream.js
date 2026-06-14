@@ -125,6 +125,7 @@ function jsonstream_strip_comment(jsonstream, buf, start, i, sz)
 			{
 				jsonstream.comment_seen_preliminary = false;
 				jsonstream.c_comment_seen = true;
+				jsonstream.c_comment_seen_star = false;
 				jsonstream.val = "";
 				i++;
 				continue;
@@ -363,6 +364,7 @@ function jsonstream_feed(jsonstream, buf, start, sz, eof)
 			{
 				jsonstream.comment_seen_preliminary = false;
 				jsonstream.c_comment_seen = true;
+				jsonstream.c_comment_seen_star = false;
 				jsonstream.val = "";
 				continue;
 			}
