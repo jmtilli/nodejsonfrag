@@ -148,6 +148,7 @@ function jsonstream_strip_comment(jsonstream, buf, start, i, sz)
 			else if (jsonstream.c_comment_seen_star && buf[start+i] == '/')
 			{
 				jsonstream.c_comment_seen = false;
+				jsonstream.c_comment_seen_star = false;
 				if (jsonstream.handler.handle_comment)
 				{
 					ret = jsonstream.handler.handle_comment(jsonstream, jsonstream.comma_seen, jsonstream.val);
@@ -383,6 +384,7 @@ function jsonstream_feed(jsonstream, buf, start, sz, eof)
 			else if (jsonstream.c_comment_seen_star && buf[start+i] == '/')
 			{
 				jsonstream.c_comment_seen = false;
+				jsonstream.c_comment_seen_star = false;
 				if (jsonstream.handler.handle_comment)
 				{
 					ret = jsonstream.handler.handle_comment(jsonstream, jsonstream.comma_seen, jsonstream.val);
