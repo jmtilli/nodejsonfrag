@@ -14,6 +14,7 @@ JSONSTREAM_MODE_VAL = 13;
 JSONSTREAM_MODE_COLON = 14;
 JSONSTREAM_MODE_COMMA = 15;
 JSONSTREAM_MODE_NUMBER = 16;
+JSONSTREAM_MODE_ENDWS = 17;
 
 /*
    handler: {
@@ -97,6 +98,7 @@ function jsonstream_get_key(jsonstream)
 function jsonstream_strip_comment(jsonstream, buf, start, i, sz)
 {
 	i++;
+	jsonstream.mode = JSONSTREAM_MODE_ENDWS;
 	while (i < sz)
 	{
 		if (jsonstream.comments &&
@@ -109,7 +111,8 @@ function jsonstream_strip_comment(jsonstream, buf, start, i, sz)
 		      jsonstream.mode == JSONSTREAM_MODE_FIRSTKEY ||
 		      jsonstream.mode == JSONSTREAM_MODE_FIRSTVAL ||
 		      jsonstream.mode == JSONSTREAM_MODE_KEY ||
-		      jsonstream.mode == JSONSTREAM_MODE_VAL))
+		      jsonstream.mode == JSONSTREAM_MODE_VAL ||
+		      jsonstream.mode == JSONSTREAM_MODE_ENDWS))
 		{
 			jsonstream.comment_seen_preliminary = true;
 			jsonstream.val = "";
@@ -205,6 +208,12 @@ function jsonstream_feed(jsonstream, buf, start, sz, eof)
 	for (i = 0; i < sz; i++)
 	{
 		//console.log(jsonstream.mode + ": " + buf[start+i]);
+		if (jsonstream.mode == JSONSTREAM_MODE_ENDWS)
+		{
+			i--;
+			jsonstream_strip_comment(jsonstream, buf, start, i, sz);
+			return eof ? 0 : -1;
+		}
 		if (jsonstream.mode == JSONSTREAM_MODE_KEYSTRING)
 		{
 			if (buf[start+i] == '\\')
@@ -236,7 +245,7 @@ function jsonstream_feed(jsonstream, buf, start, sz, eof)
 					if (jsonstream.keystack.length <= 0)
 					{
 						jsonstream_strip_comment(jsonstream, buf, start, i, sz);
-						return 0;
+						return eof ? 0 : -1;
 					}
 					continue;
 				}
@@ -248,7 +257,7 @@ function jsonstream_feed(jsonstream, buf, start, sz, eof)
 				if (jsonstream.keystack.length <= 0)
 				{
 					jsonstream_strip_comment(jsonstream, buf, start, i, sz);
-					return 0;
+					return eof ? 0 : -1;
 				}
 			}
 			else
@@ -471,7 +480,7 @@ function jsonstream_feed(jsonstream, buf, start, sz, eof)
 					if (jsonstream.keystack.length <= 0)
 					{
 						jsonstream_strip_comment(jsonstream, buf, start, i, sz);
-						return 0;
+						return eof ? 0 : -1;
 					}
 					continue;
 				}
@@ -483,7 +492,7 @@ function jsonstream_feed(jsonstream, buf, start, sz, eof)
 				if (jsonstream.keystack.length <= 0)
 				{
 					jsonstream_strip_comment(jsonstream, buf, start, i, sz);
-					return 0;
+					return eof ? 0 : -1;
 				}
 				continue;
 			}
@@ -507,7 +516,7 @@ function jsonstream_feed(jsonstream, buf, start, sz, eof)
 					if (jsonstream.keystack.length <= 0)
 					{
 						jsonstream_strip_comment(jsonstream, buf, start, i, sz);
-						return 0;
+						return eof ? 0 : -1;
 					}
 					continue;
 				}
@@ -519,7 +528,7 @@ function jsonstream_feed(jsonstream, buf, start, sz, eof)
 				if (jsonstream.keystack.length <= 0)
 				{
 					jsonstream_strip_comment(jsonstream, buf, start, i, sz);
-					return 0;
+					return eof ? 0 : -1;
 				}
 				continue;
 			}
@@ -574,7 +583,7 @@ function jsonstream_feed(jsonstream, buf, start, sz, eof)
 				if (jsonstream.keystack.length <= 0)
 				{
 					jsonstream_strip_comment(jsonstream, buf, start, i, sz);
-					return 0;
+					return eof ? 0 : -1;
 				}
 				continue;
 			}
@@ -586,7 +595,7 @@ function jsonstream_feed(jsonstream, buf, start, sz, eof)
 			if (jsonstream.keystack.length <= 0)
 			{
 				jsonstream_strip_comment(jsonstream, buf, start, i, sz);
-				return 0;
+				return eof ? 0 : -1;
 			}
 			continue;
 		}
@@ -606,7 +615,7 @@ function jsonstream_feed(jsonstream, buf, start, sz, eof)
 				if (jsonstream.keystack.length <= 0)
 				{
 					jsonstream_strip_comment(jsonstream, buf, start, i, sz);
-					return 0;
+					return eof ? 0 : -1;
 				}
 				continue;
 			}
@@ -618,7 +627,7 @@ function jsonstream_feed(jsonstream, buf, start, sz, eof)
 			if (jsonstream.keystack.length <= 0)
 			{
 				jsonstream_strip_comment(jsonstream, buf, start, i, sz);
-				return 0;
+				return eof ? 0 : -1;
 			}
 			continue;
 		}
@@ -638,7 +647,7 @@ function jsonstream_feed(jsonstream, buf, start, sz, eof)
 				if (jsonstream.keystack.length <= 0)
 				{
 					jsonstream_strip_comment(jsonstream, buf, start, i, sz);
-					return 0;
+					return eof ? 0 : -1;
 				}
 				continue;
 			}
@@ -650,7 +659,7 @@ function jsonstream_feed(jsonstream, buf, start, sz, eof)
 			if (jsonstream.keystack.length <= 0)
 			{
 				jsonstream_strip_comment(jsonstream, buf, start, i, sz);
-				return 0;
+				return eof ? 0 : -1;
 			}
 			continue;
 		}
@@ -738,7 +747,7 @@ function jsonstream_feed(jsonstream, buf, start, sz, eof)
 				if (jsonstream.keystack.length <= 0)
 				{
 					jsonstream_strip_comment(jsonstream, buf, start, i, sz);
-					return 0;
+					return eof ? 0 : -1;
 				}
 				continue;
 			}
@@ -750,7 +759,7 @@ function jsonstream_feed(jsonstream, buf, start, sz, eof)
 			if (jsonstream.keystack.length <= 0)
 			{
 				jsonstream_strip_comment(jsonstream, buf, start, i, sz);
-				return 0;
+				return eof ? 0 : -1;
 			}
 			continue;
 		}
@@ -766,7 +775,7 @@ function jsonstream_feed(jsonstream, buf, start, sz, eof)
 			{
 				return 0;
 			}
-			return -1; // FIXME
+			throw new Error("invalid JSON");
 		}
 		ret = jsonstream.handler.handle_number(jsonstream, jsonstream_get_key(jsonstream), Number(jsonstream.val), jsonstream.is_integer);
 		if (ret != 0)
@@ -777,7 +786,7 @@ function jsonstream_feed(jsonstream, buf, start, sz, eof)
 		{
 			return 0;
 		}
-		return -1; // FIXME
+		throw new Error("invalid JSON");
 	}
 	return -1;
 }
