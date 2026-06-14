@@ -93,6 +93,7 @@ function jsonstream_get_key(jsonstream)
 }
 function jsonstream_feed(jsonstream, buf, start, sz, eof)
 {
+	var i;
 	if (sz < 0 || start+sz > buf.length)
 	{
 		throw new Error("out of bounds");
@@ -751,8 +752,25 @@ function jsonstream_feed(jsonstream, buf, start, sz, eof)
 	}
 	return -1;
 }
+function jsonstream_is_valid_json(x, allow_comments)
+{
+	var handler = {};
+	var ctx = jsonstream_new(handler);
+	if (allow_comments)
+	{
+		jsonstream_allow_comments(ctx);
+	}
+	try {
+		var ret = jsonstream_feed(ctx, x, 0, x.length, true);
+		return (ret == 0);
+	}
+	catch {
+		return false;
+	}
+}
 module.exports = {
 	jsonstream_new,
 	jsonstream_allow_comments,
-	jsonstream_feed
+	jsonstream_feed,
+	jsonstream_is_valid_json
 };
