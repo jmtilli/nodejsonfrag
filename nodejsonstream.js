@@ -792,6 +792,11 @@ function jsonstream_feed(jsonstream, buf, start, sz, eof)
 		}
 		throw new Error("invalid JSON");
 	}
+	if (jsonstream.keystack.length >= 0 && eof &&
+	    jsonstream.mode == JSONSTREAM_MODE_ENDWS)
+	{
+		return 0;
+	}
 	return -1;
 }
 function jsonstream_is_valid_json(x, allow_comments)
