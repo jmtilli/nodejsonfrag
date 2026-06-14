@@ -34,7 +34,8 @@ function jsonstream_new(handler)
 	result.mode = JSONSTREAM_MODE_VAL;
 	result.sz = 0;
 	result.uescape = "";
-	result.comment_seen = false;
+	result.cpp_comment_seen = false;
+	result.comment_seen_preliminary = false;
 	result.comments = false;
 	result.keypresent = false;
 	result.key = "";
@@ -91,6 +92,68 @@ function jsonstream_get_key(jsonstream)
 	}
 	return jsonstream.key;
 }
+function jsonstream_strip_comment(jsonstream, buf, start, i, sz)
+{
+	i++;
+	while (i < sz)
+	{
+		if (jsonstream.comments &&
+		    !jsonstream.comment_seen_preliminary &&
+		    !jsonstream.cpp_comment_seen &&
+		    buf[start+i] == '/' && (
+		      jsonstream.mode == JSONSTREAM_MODE_COLON ||
+		      jsonstream.mode == JSONSTREAM_MODE_COMMA ||
+		      jsonstream.mode == JSONSTREAM_MODE_FIRSTKEY ||
+		      jsonstream.mode == JSONSTREAM_MODE_FIRSTVAL ||
+		      jsonstream.mode == JSONSTREAM_MODE_KEY ||
+		      jsonstream.mode == JSONSTREAM_MODE_VAL))
+		{
+			jsonstream.comment_seen_preliminary = true;
+			jsonstream.val = "";
+			i++;
+			continue;
+		}
+		if (jsonstream.comment_seen_preliminary)
+		{
+			if (buf[start+i] != '/')
+			{
+				throw new Error("illegal comment");
+			}
+			jsonstream.comment_seen_preliminary = false;
+			jsonstream.cpp_comment_seen = true;
+			jsonstream.val = "";
+			i++;
+			continue;
+		}
+		if (jsonstream.cpp_comment_seen)
+		{
+			if (buf[start+i] == '\n')
+			{
+				jsonstream.cpp_comment_seen = false;
+				if (jsonstream.handler.handle_comment)
+				{
+					ret = jsonstream.handler.handle_comment(jsonstream, jsonstream.comma_seen, jsonstream.val);
+					if (ret != 0)
+					{
+						return ret;
+					}
+				}
+			}
+			else
+			{
+				jsonstream_put_val(jsonstream, buf[start+i]);
+			}
+			i++;
+			continue;
+		}
+		if (buf[start+i] == ' ' || buf[start+i] == '\n' || buf[start+i] == '\r' || buf[start+i] == '\t')
+		{
+			i++;
+			continue;
+		}
+		throw new Error("Overflow");
+	}
+}
 function jsonstream_feed(jsonstream, buf, start, sz, eof)
 {
 	var i;
@@ -131,16 +194,7 @@ function jsonstream_feed(jsonstream, buf, start, sz, eof)
 				{
 					if (jsonstream.keystack.length <= 0)
 					{
-						i++;
-						while (i < sz)
-						{
-							if (buf[start+i] == ' ' || buf[start+i] == '\n' || buf[start+i] == '\r' || buf[start+i] == '\t')
-							{
-								i++;
-								continue;
-							}
-							throw new Error("Overflow");
-						}
+						jsonstream_strip_comment(jsonstream, buf, start, i, sz);
 						return 0;
 					}
 					continue;
@@ -152,16 +206,7 @@ function jsonstream_feed(jsonstream, buf, start, sz, eof)
 				}
 				if (jsonstream.keystack.length <= 0)
 				{
-					i++;
-					while (i < sz)
-					{
-						if (buf[start+i] == ' ' || buf[start+i] == '\n' || buf[start+i] == '\r' || buf[start+i] == '\t')
-						{
-							i++;
-							continue;
-						}
-						throw new Error("Overflow");
-					}
+					jsonstream_strip_comment(jsonstream, buf, start, i, sz);
 					return 0;
 				}
 			}
@@ -245,7 +290,10 @@ function jsonstream_feed(jsonstream, buf, start, sz, eof)
 			}
 			continue;
 		}
-		if (jsonstream.comments && buf[start+i] == '#' && (
+		if (jsonstream.comments &&
+		    !jsonstream.comment_seen_preliminary &&
+		    !jsonstream.cpp_comment_seen &&
+		    buf[start+i] == '/' && (
 		      jsonstream.mode == JSONSTREAM_MODE_COLON ||
 		      jsonstream.mode == JSONSTREAM_MODE_COMMA ||
 		      jsonstream.mode == JSONSTREAM_MODE_FIRSTKEY ||
@@ -253,15 +301,26 @@ function jsonstream_feed(jsonstream, buf, start, sz, eof)
 		      jsonstream.mode == JSONSTREAM_MODE_KEY ||
 		      jsonstream.mode == JSONSTREAM_MODE_VAL))
 		{
-			jsonstream.comment_seen = true;
+			jsonstream.comment_seen_preliminary = true;
 			jsonstream.val = "";
 			continue;
 		}
-		if (jsonstream.comment_seen)
+		if (jsonstream.comment_seen_preliminary)
+		{
+			if (buf[start+i] != '/')
+			{
+				throw new Error("illegal comment");
+			}
+			jsonstream.comment_seen_preliminary = false;
+			jsonstream.cpp_comment_seen = true;
+			jsonstream.val = "";
+			continue;
+		}
+		if (jsonstream.cpp_comment_seen)
 		{
 			if (buf[start+i] == '\n')
 			{
-				jsonstream.comment_seen = false;
+				jsonstream.cpp_comment_seen = false;
 				if (jsonstream.handler.handle_comment)
 				{
 					ret = jsonstream.handler.handle_comment(jsonstream, jsonstream.comma_seen, jsonstream.val);
@@ -333,16 +392,7 @@ function jsonstream_feed(jsonstream, buf, start, sz, eof)
 				{
 					if (jsonstream.keystack.length <= 0)
 					{
-						i++;
-						while (i < sz)
-						{
-							if (buf[start+i] == ' ' || buf[start+i] == '\n' || buf[start+i] == '\r' || buf[start+i] == '\t')
-							{
-								i++;
-								continue;
-							}
-							throw new Error("Overflow");
-						}
+						jsonstream_strip_comment(jsonstream, buf, start, i, sz);
 						return 0;
 					}
 					continue;
@@ -354,16 +404,7 @@ function jsonstream_feed(jsonstream, buf, start, sz, eof)
 				}
 				if (jsonstream.keystack.length <= 0)
 				{
-					i++;
-					while (i < sz)
-					{
-						if (buf[start+i] == ' ' || buf[start+i] == '\n' || buf[start+i] == '\r' || buf[start+i] == '\t')
-						{
-							i++;
-							continue;
-						}
-						throw new Error("Overflow");
-					}
+					jsonstream_strip_comment(jsonstream, buf, start, i, sz);
 					return 0;
 				}
 				continue;
@@ -387,16 +428,7 @@ function jsonstream_feed(jsonstream, buf, start, sz, eof)
 				{
 					if (jsonstream.keystack.length <= 0)
 					{
-						i++;
-						while (i < sz)
-						{
-							if (buf[start+i] == ' ' || buf[start+i] == '\n' || buf[start+i] == '\r' || buf[start+i] == '\t')
-							{
-								i++;
-								continue;
-							}
-							throw new Error("Overflow");
-						}
+						jsonstream_strip_comment(jsonstream, buf, start, i, sz);
 						return 0;
 					}
 					continue;
@@ -408,16 +440,7 @@ function jsonstream_feed(jsonstream, buf, start, sz, eof)
 				}
 				if (jsonstream.keystack.length <= 0)
 				{
-					i++;
-					while (i < sz)
-					{
-						if (buf[start+i] == ' ' || buf[start+i] == '\n' || buf[start+i] == '\r' || buf[start+i] == '\t')
-						{
-							i++;
-							continue;
-						}
-						throw new Error("Overflow");
-					}
+					jsonstream_strip_comment(jsonstream, buf, start, i, sz);
 					return 0;
 				}
 				continue;
@@ -472,16 +495,7 @@ function jsonstream_feed(jsonstream, buf, start, sz, eof)
 			{
 				if (jsonstream.keystack.length <= 0)
 				{
-					i++;
-					while (i < sz)
-					{
-						if (buf[start+i] == ' ' || buf[start+i] == '\n' || buf[start+i] == '\r' || buf[start+i] == '\t')
-						{
-							i++;
-							continue;
-						}
-						throw new Error("Overflow");
-					}
+					jsonstream_strip_comment(jsonstream, buf, start, i, sz);
 					return 0;
 				}
 				continue;
@@ -493,16 +507,7 @@ function jsonstream_feed(jsonstream, buf, start, sz, eof)
 			}
 			if (jsonstream.keystack.length <= 0)
 			{
-				i++;
-				while (i < sz)
-				{
-					if (buf[start+i] == ' ' || buf[start+i] == '\n' || buf[start+i] == '\r' || buf[start+i] == '\t')
-					{
-						i++;
-						continue;
-					}
-					throw new Error("Overflow");
-				}
+				jsonstream_strip_comment(jsonstream, buf, start, i, sz);
 				return 0;
 			}
 			continue;
@@ -522,16 +527,7 @@ function jsonstream_feed(jsonstream, buf, start, sz, eof)
 			{
 				if (jsonstream.keystack.length <= 0)
 				{
-					i++;
-					while (i < sz)
-					{
-						if (buf[start+i] == ' ' || buf[start+i] == '\n' || buf[start+i] == '\r' || buf[start+i] == '\t')
-						{
-							i++;
-							continue;
-						}
-						throw new Error("Overflow");
-					}
+					jsonstream_strip_comment(jsonstream, buf, start, i, sz);
 					return 0;
 				}
 				continue;
@@ -543,16 +539,7 @@ function jsonstream_feed(jsonstream, buf, start, sz, eof)
 			}
 			if (jsonstream.keystack.length <= 0)
 			{
-				i++;
-				while (i < sz)
-				{
-					if (buf[start+i] == ' ' || buf[start+i] == '\n' || buf[start+i] == '\r' || buf[start+i] == '\t')
-					{
-						i++;
-						continue;
-					}
-					throw new Error("Overflow");
-				}
+				jsonstream_strip_comment(jsonstream, buf, start, i, sz);
 				return 0;
 			}
 			continue;
@@ -572,16 +559,7 @@ function jsonstream_feed(jsonstream, buf, start, sz, eof)
 			{
 				if (jsonstream.keystack.length <= 0)
 				{
-					i++;
-					while (i < sz)
-					{
-						if (buf[start+i] == ' ' || buf[start+i] == '\n' || buf[start+i] == '\r' || buf[start+i] == '\t')
-						{
-							i++;
-							continue;
-						}
-						throw new Error("Overflow");
-					}
+					jsonstream_strip_comment(jsonstream, buf, start, i, sz);
 					return 0;
 				}
 				continue;
@@ -593,16 +571,7 @@ function jsonstream_feed(jsonstream, buf, start, sz, eof)
 			}
 			if (jsonstream.keystack.length <= 0)
 			{
-				i++;
-				while (i < sz)
-				{
-					if (buf[start+i] == ' ' || buf[start+i] == '\n' || buf[start+i] == '\r' || buf[start+i] == '\t')
-					{
-						i++;
-						continue;
-					}
-					throw new Error("Overflow");
-				}
+				jsonstream_strip_comment(jsonstream, buf, start, i, sz);
 				return 0;
 			}
 			continue;
@@ -690,16 +659,7 @@ function jsonstream_feed(jsonstream, buf, start, sz, eof)
 			{
 				if (jsonstream.keystack.length <= 0)
 				{
-					i++;
-					while (i < sz)
-					{
-						if (buf[start+i] == ' ' || buf[start+i] == '\n' || buf[start+i] == '\r' || buf[start+i] == '\t')
-						{
-							i++;
-							continue;
-						}
-						throw new Error("Overflow");
-					}
+					jsonstream_strip_comment(jsonstream, buf, start, i, sz);
 					return 0;
 				}
 				continue;
@@ -711,16 +671,7 @@ function jsonstream_feed(jsonstream, buf, start, sz, eof)
 			}
 			if (jsonstream.keystack.length <= 0)
 			{
-				i++;
-				while (i < sz)
-				{
-					if (buf[start+i] == ' ' || buf[start+i] == '\n' || buf[start+i] == '\r' || buf[start+i] == '\t')
-					{
-						i++;
-						continue;
-					}
-					throw new Error("Overflow");
-				}
+				jsonstream_strip_comment(jsonstream, buf, start, i, sz);
 				return 0;
 			}
 			continue;
