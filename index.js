@@ -1540,7 +1540,9 @@ module.exports = {
 	jsonstream_allow_comments,
 	jsonstream_allow_trailing_comma,
 	jsonstream_feed,
+	//
 	jsonstream_is_valid_json,
+	//
 	jsonstream_tree_parse,
 	//
 	jsonout_stringify,
