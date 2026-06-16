@@ -40,6 +40,7 @@ function jsonstream_new(handler)
 	result.cpp_comment_seen = false;
 	result.comment_seen_preliminary = false;
 	result.comments = false;
+	result.allow_trailing_comma = false;
 	result.keypresent = false;
 	result.key = "";
 	result.keystack = [];
@@ -51,6 +52,10 @@ function jsonstream_new(handler)
 function jsonstream_allow_comments(jsonstream)
 {
 	jsonstream.comments = true;
+}
+function jsonstream_allow_trailing_comma(jsonstream)
+{
+	jsonstream.allow_trailing_comma = true;
 }
 function jsonstream_put_key(jsonstream, ch)
 {
@@ -465,7 +470,7 @@ function jsonstream_feed(jsonstream, buf, start, sz, eof)
 			}
 		}
 		jsonstream.comma_seen = false;
-		if ((jsonstream.mode == JSONSTREAM_MODE_COMMA || jsonstream.mode == JSONSTREAM_MODE_FIRSTKEY) && buf[start+i] == '}')
+		if ((jsonstream.mode == JSONSTREAM_MODE_COMMA || jsonstream.mode == JSONSTREAM_MODE_FIRSTKEY || (jsonstream.allow_trailing_comma && jsonstream.mode == JSONSTREAM_MODE_KEY)) && buf[start+i] == '}')
 		{
 			if (buf[start+i] == '}')
 			{
@@ -501,13 +506,13 @@ function jsonstream_feed(jsonstream, buf, start, sz, eof)
 				continue;
 			}
 		}
-		if ((jsonstream.mode == JSONSTREAM_MODE_COMMA || jsonstream.mode == JSONSTREAM_MODE_FIRSTVAL) && buf[start+i] == ']')
+		if ((jsonstream.mode == JSONSTREAM_MODE_COMMA || jsonstream.mode == JSONSTREAM_MODE_FIRSTVAL || (jsonstream.allow_trailing_comma && jsonstream.mode == JSONSTREAM_MODE_VAL)) && buf[start+i] == ']')
 		{
 			if (buf[start+i] == ']')
 			{
-				if (jsonstream.mode == JSONSTREAM_MODE_COMMA)
+				if (jsonstream.mode == JSONSTREAM_MODE_COMMA || jsonstream.mode == JSONSTREAM_MODE_VAL)
 				{
-					if (jsonstream.keypresent)
+					if (jsonstream.keypresent || jsonstream.keystack.length <= 0)
 					{
 						throw new Error("invalid JSON");
 					}
@@ -818,6 +823,7 @@ function jsonstream_is_valid_json(x, allow_comments)
 module.exports = {
 	jsonstream_new,
 	jsonstream_allow_comments,
+	jsonstream_allow_trailing_comma,
 	jsonstream_feed,
 	jsonstream_is_valid_json
 };
