@@ -26,7 +26,7 @@ JSONSTREAM_MODE_ENDWS = 17;
      .handle_string(jsonstream, key, val)
      .handle_number(jsonstream, key, num, is_integer)
      .handle_boolean(jsonstream, key, val)
-     .handle_comment(jsonstream, comman_seen, comment)
+     .handle_comment(jsonstream, comman_seen, comment, is_multiline)
    }
  */
 function jsonstream_new(handler)
@@ -157,7 +157,7 @@ function jsonstream_strip_comment(jsonstream, buf, start, i, sz)
 				jsonstream.c_comment_seen_star = false;
 				if (jsonstream.handler.handle_comment)
 				{
-					ret = jsonstream.handler.handle_comment(jsonstream, jsonstream.comma_seen, jsonstream.val);
+					ret = jsonstream.handler.handle_comment(jsonstream, jsonstream.comma_seen, jsonstream.val, true);
 					if (ret != 0)
 					{
 						return ret;
@@ -183,7 +183,7 @@ function jsonstream_strip_comment(jsonstream, buf, start, i, sz)
 				jsonstream.cpp_comment_seen = false;
 				if (jsonstream.handler.handle_comment)
 				{
-					ret = jsonstream.handler.handle_comment(jsonstream, jsonstream.comma_seen, jsonstream.val);
+					ret = jsonstream.handler.handle_comment(jsonstream, jsonstream.comma_seen, jsonstream.val, false);
 					if (ret != 0)
 					{
 						return ret;
@@ -394,7 +394,7 @@ function jsonstream_feed(jsonstream, buf, start, sz, eof)
 				jsonstream.c_comment_seen_star = false;
 				if (jsonstream.handler.handle_comment)
 				{
-					ret = jsonstream.handler.handle_comment(jsonstream, jsonstream.comma_seen, jsonstream.val);
+					ret = jsonstream.handler.handle_comment(jsonstream, jsonstream.comma_seen, jsonstream.val, true);
 					if (ret != 0)
 					{
 						return ret;
@@ -419,7 +419,7 @@ function jsonstream_feed(jsonstream, buf, start, sz, eof)
 				jsonstream.cpp_comment_seen = false;
 				if (jsonstream.handler.handle_comment)
 				{
-					ret = jsonstream.handler.handle_comment(jsonstream, jsonstream.comma_seen, jsonstream.val);
+					ret = jsonstream.handler.handle_comment(jsonstream, jsonstream.comma_seen, jsonstream.val, false);
 					if (ret != 0)
 					{
 						return ret;
