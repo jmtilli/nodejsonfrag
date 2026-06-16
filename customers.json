@@ -1,0 +1,16 @@
+{
+  "customers": [
+    {
+      "id": 1,
+      "name": "Clark Henson",
+      "accountCount": 1,
+      "totalBalance": 5085.96
+    },
+    {
+      "id": 2,
+      "name": "Elnora Ericson",
+      "accountCount": 3,
+      "totalBalance": 3910.11
+    }
+  ]
+}
