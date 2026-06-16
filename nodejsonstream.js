@@ -216,6 +216,11 @@ function jsonstream_feed(jsonstream, buf, start, sz, eof)
 	{
 		throw new Error("out of bounds");
 	}
+	if (jsonstream.mode == JSONSTREAM_MODE_ENDWS)
+	{
+		jsonstream_strip_comment(jsonstream, buf, start, -1, sz, eof);
+		return eof ? 0 : -1;
+	}
 	for (i = 0; i < sz; i++)
 	{
 		//console.log(jsonstream.mode + ": " + buf[start+i]);
