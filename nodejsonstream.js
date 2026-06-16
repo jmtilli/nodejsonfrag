@@ -805,7 +805,7 @@ function jsonstream_feed(jsonstream, buf, start, sz, eof)
 	{
 		throw new Error("Unterminated beginning of comment");
 	}
-	if (jsonstream.keystack.length >= 0 && eof &&
+	if (jsonstream.keystack.length <= 0 && eof &&
 	    jsonstream.mode == JSONSTREAM_MODE_ENDWS)
 	{
 		return 0;
