@@ -1413,8 +1413,42 @@ function jsonout_add_null(ctx)
 	ctx.first = false;
 }
 
-function jsonout_comment(ctx, comma_seen, comment)
+function jsonout_comment(ctx, comma_seen, comment, force_multiline)
 {
+	if (comment.indexOf("\r") != -1 || comment.indexOf("\n") != -1)
+	{
+		force_multiline = true;
+	}
+	if (force_multiline)
+	{
+		if (comma_seen)
+		{
+			ctx.datasink(ctx.datasinkctx, ", /*");
+			ctx.commentcomma = true;
+			ctx.first = true;
+		}
+		else
+		{
+			ctx.datasink(ctx.datasinkctx, " /*");
+		}
+		ctx.datasink(ctx.datasinkctx, comment);
+		ctx.datasink(ctx.datasinkctx, "*/\n");
+		ctx.commentnewline = true;
+		return;
+	}
+	if (comma_seen)
+	{
+		ctx.datasink(ctx.datasinkctx, ", //");
+		ctx.commentcomma = true;
+		ctx.first = true;
+	}
+	else
+	{
+		ctx.datasink(ctx.datasinkctx, " //");
+	}
+	ctx.datasink(ctx.datasinkctx, comment);
+	ctx.datasink(ctx.datasinkctx, "\n");
+	ctx.commentnewline = true;
 }
 
 function jsonout_put_number(ctx, key, val)
