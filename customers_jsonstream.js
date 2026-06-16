@@ -8,7 +8,7 @@ handler = {
   start_dict: function(ctx, key)
   {
     context.push(key);
-    if (context.length == 3 && context[0] == null && context[1] == "customers" && context[2] == null)
+    if (context.length == 3 && context[0] == null && context[1] == "customers" && context[2] == null)
     {
       c = {};
     }
