@@ -1535,6 +1535,236 @@ function jsonout_add_flop_ex(ctx, val)
 	ctx.first = false;
 }
 
+function jsonfrag_is(ctx, stack)
+{
+	var i;
+	if (ctx.jsonfrag.keystack.length != stack.length+1)
+	{
+		return false;
+	}
+	// ctx.jsonfrag.keystack[0] is always null
+	for (i = 0; i < ctx.jsonfrag.keystack.length; i++)
+	{
+		if (ctx.jsonfrag.keystack[i+1] != stack[i])
+		{
+			return false;
+		}
+	}
+	return true;
+}
+function jsonfrag_start_fragment_collection(ctx)
+{
+	if (ctx.jsonfrag.isdict)
+	{
+		ctx.jsonfrag.n.push({});
+	}
+	else
+	{
+		ctx.jsonfrag.n.push([]);
+	}
+}
+function jsonfrag_start_dict(ctx, key)
+{
+	var obj;
+	ctx.jsonfrag.keystack.push(key);
+	if (ctx.jsonfrag.n.length == 0)
+	{
+		if (ctx.jsonfrag.handler.start_dict)
+		{
+			ctx.jsonfrag.isdict = true;
+			ctx.jsonfrag.handler.start_dict(ctx, key);
+		}
+		return;
+	}
+	obj = {};
+	if (key == null)
+	{
+		ctx.jsonfrag.n[ctx.jsonfrag.n.length-1].push(obj);
+	}
+	else
+	{
+		ctx.jsonfrag.n[ctx.jsonfrag.n.length-1][key] = obj;
+	}
+	ctx.jsonfrag.n.push(obj);
+}
+function jsonfrag_end_dict(ctx, key)
+{
+	var last;
+	if (ctx.jsonfrag.n.length == 0)
+	{
+		if (ctx.jsonfrag.handler.end_dict)
+		{
+			ctx.jsonfrag.handler.end_dict(ctx, key, null);
+		}
+		ctx.jsonfrag.keystack.pop();
+		return;
+	}
+	last = ctx.jsonfrag.n.pop();
+	if (ctx.jsonfrag.n.length == 0)
+	{
+		if (ctx.jsonfrag.handler.end_dict)
+		{
+			ctx.jsonfrag.handler.end_dict(ctx, key, last);
+		}
+	}
+	ctx.jsonfrag.keystack.pop();
+}
+function jsonfrag_start_array(ctx, key)
+{
+	var obj;
+	ctx.jsonfrag.keystack.push(key);
+	if (ctx.jsonfrag.n.length == 0)
+	{
+		if (ctx.jsonfrag.handler.start_array)
+		{
+			ctx.jsonfrag.isdict = false;
+			ctx.jsonfrag.handler.start_array(ctx, key);
+		}
+		return;
+	}
+	obj = [];
+	if (key == null)
+	{
+		ctx.jsonfrag.n[ctx.jsonfrag.n.length-1].push(obj);
+	}
+	else
+	{
+		ctx.jsonfrag.n[ctx.jsonfrag.n.length-1][key] = obj;
+	}
+	ctx.jsonfrag.n.push(obj);
+}
+function jsonfrag_end_array(ctx, key)
+{
+	var last;
+	if (ctx.jsonfrag.n.length == 0)
+	{
+		if (ctx.jsonfrag.handler.end_array)
+		{
+			ctx.jsonfrag.handler.end_array(ctx, key, null);
+		}
+		ctx.jsonfrag.keystack.pop();
+		return;
+	}
+	last = ctx.jsonfrag.n.pop();
+	if (ctx.jsonfrag.n.length == 0)
+	{
+		if (ctx.jsonfrag.handler.end_array)
+		{
+			ctx.jsonfrag.handler.end_array(ctx, key, last);
+		}
+	}
+	ctx.jsonfrag.keystack.pop();
+}
+function jsonfrag_handle_null(ctx, key)
+{
+	if (ctx.jsonfrag.n.length == 0)
+	{
+		if (ctx.jsonfrag.handler.handle_null)
+		{
+			ctx.jsonfrag.handler.handle_null(ctx, key);
+		}
+		return;
+	}
+	if (key == null)
+	{
+		ctx.jsonfrag.n[ctx.jsonfrag.n.length-1].push(null);
+	}
+	else
+	{
+		ctx.jsonfrag.n[ctx.jsonfrag.n.length-1][key] = null;
+	}
+}
+function jsonfrag_handle_string(ctx, key, val)
+{
+	if (ctx.jsonfrag.n.length == 0)
+	{
+		if (ctx.jsonfrag.handler.handle_string)
+		{
+			ctx.jsonfrag.handler.handle_string(ctx, key, val);
+		}
+		return;
+	}
+	if (key == null)
+	{
+		ctx.jsonfrag.n[ctx.jsonfrag.n.length-1].push(val);
+	}
+	else
+	{
+		ctx.jsonfrag.n[ctx.jsonfrag.n.length-1][key] = val;
+	}
+}
+function jsonfrag_handle_number(ctx, key, val, is_integer)
+{
+	if (ctx.jsonfrag.n.length == 0)
+	{
+		if (ctx.jsonfrag.handler.handle_number)
+		{
+			ctx.jsonfrag.handler.handle_number(ctx, key, val, is_integer);
+		}
+		return;
+	}
+	if (key == null)
+	{
+		ctx.jsonfrag.n[ctx.jsonfrag.n.length-1].push(val);
+	}
+	else
+	{
+		ctx.jsonfrag.n[ctx.jsonfrag.n.length-1][key] = val;
+	}
+}
+function jsonfrag_handle_boolean(ctx, key, val)
+{
+	if (ctx.jsonfrag.n.length == 0)
+	{
+		if (ctx.jsonfrag.handler.handle_boolean)
+		{
+			ctx.jsonfrag.handler.handle_boolean(ctx, key, val);
+		}
+		return;
+	}
+	if (key == null)
+	{
+		ctx.jsonfrag.n[ctx.jsonfrag.n.length-1].push(val);
+	}
+	else
+	{
+		ctx.jsonfrag.n[ctx.jsonfrag.n.length-1][key] = val;
+	}
+}
+
+function jsonfrag_new(fraghandler)
+{
+	var evhandler = {
+		'start_dict': jsonfrag_start_dict,
+		'end_dict': jsonfrag_end_dict,
+		'start_array': jsonfrag_start_array,
+		'end_array': jsonfrag_end_array,
+		'handle_null': jsonfrag_handle_null,
+		'handle_string': jsonfrag_handle_string,
+		'handle_number': jsonfrag_handle_number,
+		'handle_boolean': jsonfrag_handle_boolean,
+	};
+	var ctx = jsonstream_new(evhandler);
+	ctx.jsonfrag = {};
+	ctx.jsonfrag.handler = fraghandler;
+	ctx.jsonfrag.n = [];
+	ctx.jsonfrag.keystack = [];
+	return ctx;
+}
+function jsonfrag_parse(s, fraghandler, allow_comments, allow_trailing_comma)
+{
+	var ctx = jsonfrag_new(fraghandler);
+	if (allow_comments)
+	{
+		jsonstream_allow_comments(ctx);
+	}
+	if (allow_trailing_comma)
+	{
+		jsonstream_allow_trailing_comma(ctx);
+	}
+	jsonstream_feed(ctx, s, 0, s.length, true);
+}
+
 module.exports = {
 	jsonstream_new,
 	jsonstream_allow_comments,
@@ -1546,6 +1776,11 @@ module.exports = {
 	jsonstream_tree_parse,
 	//
 	jsonout_stringify,
+	//
+	jsonfrag_is,
+	jsonfrag_start_fragment_collection,
+	jsonfrag_new,
+	jsonfrag_parse,
 	//
 	jsonout_new,
 	jsonout_put_start_dict,
