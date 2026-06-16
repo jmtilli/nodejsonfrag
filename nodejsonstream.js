@@ -100,7 +100,7 @@ function jsonstream_get_key(jsonstream)
 	}
 	return jsonstream.key;
 }
-function jsonstream_strip_comment(jsonstream, buf, start, i, sz)
+function jsonstream_strip_comment(jsonstream, buf, start, i, sz, eof)
 {
 	i++;
 	jsonstream.mode = JSONSTREAM_MODE_ENDWS;
@@ -204,6 +204,10 @@ function jsonstream_strip_comment(jsonstream, buf, start, i, sz)
 		}
 		throw new Error("Overflow");
 	}
+	if (eof && (jsonstream.c_comment_seen || jsonstream.comment_seen_preliminary))
+	{
+		throw new Error("Unterminated beginning of comment");
+	}
 }
 function jsonstream_feed(jsonstream, buf, start, sz, eof)
 {
@@ -218,7 +222,7 @@ function jsonstream_feed(jsonstream, buf, start, sz, eof)
 		if (jsonstream.mode == JSONSTREAM_MODE_ENDWS)
 		{
 			i--;
-			jsonstream_strip_comment(jsonstream, buf, start, i, sz);
+			jsonstream_strip_comment(jsonstream, buf, start, i, sz, eof);
 			return eof ? 0 : -1;
 		}
 		if (jsonstream.mode == JSONSTREAM_MODE_KEYSTRING)
@@ -251,7 +255,7 @@ function jsonstream_feed(jsonstream, buf, start, sz, eof)
 				{
 					if (jsonstream.keystack.length <= 0)
 					{
-						jsonstream_strip_comment(jsonstream, buf, start, i, sz);
+						jsonstream_strip_comment(jsonstream, buf, start, i, sz, eof);
 						return eof ? 0 : -1;
 					}
 					continue;
@@ -263,7 +267,7 @@ function jsonstream_feed(jsonstream, buf, start, sz, eof)
 				}
 				if (jsonstream.keystack.length <= 0)
 				{
-					jsonstream_strip_comment(jsonstream, buf, start, i, sz);
+					jsonstream_strip_comment(jsonstream, buf, start, i, sz, eof);
 					return eof ? 0 : -1;
 				}
 			}
@@ -488,7 +492,7 @@ function jsonstream_feed(jsonstream, buf, start, sz, eof)
 				{
 					if (jsonstream.keystack.length <= 0)
 					{
-						jsonstream_strip_comment(jsonstream, buf, start, i, sz);
+						jsonstream_strip_comment(jsonstream, buf, start, i, sz, eof);
 						return eof ? 0 : -1;
 					}
 					continue;
@@ -500,7 +504,7 @@ function jsonstream_feed(jsonstream, buf, start, sz, eof)
 				}
 				if (jsonstream.keystack.length <= 0)
 				{
-					jsonstream_strip_comment(jsonstream, buf, start, i, sz);
+					jsonstream_strip_comment(jsonstream, buf, start, i, sz, eof);
 					return eof ? 0 : -1;
 				}
 				continue;
@@ -524,7 +528,7 @@ function jsonstream_feed(jsonstream, buf, start, sz, eof)
 				{
 					if (jsonstream.keystack.length <= 0)
 					{
-						jsonstream_strip_comment(jsonstream, buf, start, i, sz);
+						jsonstream_strip_comment(jsonstream, buf, start, i, sz, eof);
 						return eof ? 0 : -1;
 					}
 					continue;
@@ -536,7 +540,7 @@ function jsonstream_feed(jsonstream, buf, start, sz, eof)
 				}
 				if (jsonstream.keystack.length <= 0)
 				{
-					jsonstream_strip_comment(jsonstream, buf, start, i, sz);
+					jsonstream_strip_comment(jsonstream, buf, start, i, sz, eof);
 					return eof ? 0 : -1;
 				}
 				continue;
@@ -591,7 +595,7 @@ function jsonstream_feed(jsonstream, buf, start, sz, eof)
 			{
 				if (jsonstream.keystack.length <= 0)
 				{
-					jsonstream_strip_comment(jsonstream, buf, start, i, sz);
+					jsonstream_strip_comment(jsonstream, buf, start, i, sz, eof);
 					return eof ? 0 : -1;
 				}
 				continue;
@@ -603,7 +607,7 @@ function jsonstream_feed(jsonstream, buf, start, sz, eof)
 			}
 			if (jsonstream.keystack.length <= 0)
 			{
-				jsonstream_strip_comment(jsonstream, buf, start, i, sz);
+				jsonstream_strip_comment(jsonstream, buf, start, i, sz, eof);
 				return eof ? 0 : -1;
 			}
 			continue;
@@ -623,7 +627,7 @@ function jsonstream_feed(jsonstream, buf, start, sz, eof)
 			{
 				if (jsonstream.keystack.length <= 0)
 				{
-					jsonstream_strip_comment(jsonstream, buf, start, i, sz);
+					jsonstream_strip_comment(jsonstream, buf, start, i, sz, eof);
 					return eof ? 0 : -1;
 				}
 				continue;
@@ -635,7 +639,7 @@ function jsonstream_feed(jsonstream, buf, start, sz, eof)
 			}
 			if (jsonstream.keystack.length <= 0)
 			{
-				jsonstream_strip_comment(jsonstream, buf, start, i, sz);
+				jsonstream_strip_comment(jsonstream, buf, start, i, sz, eof);
 				return eof ? 0 : -1;
 			}
 			continue;
@@ -655,7 +659,7 @@ function jsonstream_feed(jsonstream, buf, start, sz, eof)
 			{
 				if (jsonstream.keystack.length <= 0)
 				{
-					jsonstream_strip_comment(jsonstream, buf, start, i, sz);
+					jsonstream_strip_comment(jsonstream, buf, start, i, sz, eof);
 					return eof ? 0 : -1;
 				}
 				continue;
@@ -667,7 +671,7 @@ function jsonstream_feed(jsonstream, buf, start, sz, eof)
 			}
 			if (jsonstream.keystack.length <= 0)
 			{
-				jsonstream_strip_comment(jsonstream, buf, start, i, sz);
+				jsonstream_strip_comment(jsonstream, buf, start, i, sz, eof);
 				return eof ? 0 : -1;
 			}
 			continue;
@@ -755,7 +759,7 @@ function jsonstream_feed(jsonstream, buf, start, sz, eof)
 			{
 				if (jsonstream.keystack.length <= 0)
 				{
-					jsonstream_strip_comment(jsonstream, buf, start, i, sz);
+					jsonstream_strip_comment(jsonstream, buf, start, i, sz, eof);
 					return eof ? 0 : -1;
 				}
 				continue;
@@ -767,7 +771,7 @@ function jsonstream_feed(jsonstream, buf, start, sz, eof)
 			}
 			if (jsonstream.keystack.length <= 0)
 			{
-				jsonstream_strip_comment(jsonstream, buf, start, i, sz);
+				jsonstream_strip_comment(jsonstream, buf, start, i, sz, eof);
 				return eof ? 0 : -1;
 			}
 			continue;
@@ -796,6 +800,10 @@ function jsonstream_feed(jsonstream, buf, start, sz, eof)
 			return 0;
 		}
 		throw new Error("invalid JSON");
+	}
+	if (eof && (jsonstream.c_comment_seen || jsonstream.comment_seen_preliminary))
+	{
+		throw new Error("Unterminated beginning of comment");
 	}
 	if (jsonstream.keystack.length >= 0 && eof &&
 	    jsonstream.mode == JSONSTREAM_MODE_ENDWS)
