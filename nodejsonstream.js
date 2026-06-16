@@ -1084,6 +1084,60 @@ function jsonout_indent(ctx, comma)
 		ctx.datasink(ctx.datasinkctx, ", ");
 	}
 }
+function jsonout_internal_put_flop(ctx, val)
+{
+	var cnv;
+	val = Number(val);
+	if (!Number.isFinite(val))
+	{
+		throw new Error("number not finite");
+	}
+	cnv = JSON.stringify(val);
+	if (cnv.indexOf(".") == -1 && cnv.indexOf("e") == -1 && cnv.indexOf("E") == -1)
+	{
+		cnv += ".0";
+	}
+	ctx.datasink(ctx.datasinkctx, cnv);
+}
+function jsonout_internal_put_flop_ex(ctx, val)
+{
+	var cnv;
+	val = Number(val);
+	if (!Number.isFinite(val))
+	{
+		ctx.datasink(ctx.datasinkctx, "null");
+		return;
+	}
+	cnv = JSON.stringify(val);
+	if (cnv.indexOf(".") == -1 && cnv.indexOf("e") == -1 && cnv.indexOf("E") == -1)
+	{
+		cnv += ".0";
+	}
+	ctx.datasink(ctx.datasinkctx, cnv);
+}
+function jsonout_internal_put_number(ctx, val)
+{
+	var cnv;
+	val = Number(val);
+	if (!Number.isFinite(val))
+	{
+		throw new Error("number not finite");
+	}
+	cnv = JSON.stringify(val);
+	ctx.datasink(ctx.datasinkctx, cnv);
+}
+function jsonout_internal_put_number_ex(ctx, val)
+{
+	var cnv;
+	val = Number(val);
+	if (!Number.isFinite(val))
+	{
+		ctx.datasink(ctx.datasinkctx, "null");
+		return;
+	}
+	cnv = JSON.stringify(val);
+	ctx.datasink(ctx.datasinkctx, cnv);
+}
 function jsonout_internal_put_string(ctx, val)
 {
 	ctx.datasink(ctx.datasinkctx, JSON.stringify(String(val)));
@@ -1268,28 +1322,120 @@ function jsonout_comment(ctx, comma_seen, comment)
 
 function jsonout_put_number(ctx, key, val)
 {
+	if (ctx.veryfirst)
+	{
+		throw new Error("logic error");
+	}
+	jsonout_indent(ctx, !ctx.first);
+	jsonout_internal_put_string(ctx, key);
+	if (ctx.indentamount == null)
+	{
+		ctx.datasink(ctx.datasinkctx, ":");
+	}
+	else
+	{
+		ctx.datasink(ctx.datasinkctx, ": ");
+	}
+	ctx.first = false;
+	jsonout_internal_put_number(ctx, val);
 }
 function jsonout_put_number_ex(ctx, key, val)
 {
+	if (ctx.veryfirst)
+	{
+		throw new Error("logic error");
+	}
+	jsonout_indent(ctx, !ctx.first);
+	jsonout_internal_put_string(ctx, key);
+	if (ctx.indentamount == null)
+	{
+		ctx.datasink(ctx.datasinkctx, ":");
+	}
+	else
+	{
+		ctx.datasink(ctx.datasinkctx, ": ");
+	}
+	ctx.first = false;
+	jsonout_internal_put_number_ex(ctx, val);
 }
 function jsonout_put_flop(ctx, key, val)
 {
+	if (ctx.veryfirst)
+	{
+		throw new Error("logic error");
+	}
+	jsonout_indent(ctx, !ctx.first);
+	jsonout_internal_put_string(ctx, key);
+	if (ctx.indentamount == null)
+	{
+		ctx.datasink(ctx.datasinkctx, ":");
+	}
+	else
+	{
+		ctx.datasink(ctx.datasinkctx, ": ");
+	}
+	ctx.first = false;
+	jsonout_internal_put_flop(ctx, val);
 }
 function jsonout_put_flop_ex(ctx, key, val)
 {
+	if (ctx.veryfirst)
+	{
+		throw new Error("logic error");
+	}
+	jsonout_indent(ctx, !ctx.first);
+	jsonout_internal_put_string(ctx, key);
+	if (ctx.indentamount == null)
+	{
+		ctx.datasink(ctx.datasinkctx, ":");
+	}
+	else
+	{
+		ctx.datasink(ctx.datasinkctx, ": ");
+	}
+	ctx.first = false;
+	jsonout_internal_put_flop_ex(ctx, val);
 }
 
 function jsonout_add_number(ctx, val)
 {
+	if (!ctx.veryfirst)
+	{
+		jsonout_indent(ctx, !ctx.first);
+	}
+	ctx.veryfirst = false;
+	jsonout_internal_put_number(ctx, val);
+	ctx.first = false;
 }
 function jsonout_add_number_ex(ctx, val)
 {
+	if (!ctx.veryfirst)
+	{
+		jsonout_indent(ctx, !ctx.first);
+	}
+	ctx.veryfirst = false;
+	jsonout_internal_put_number_ex(ctx, val);
+	ctx.first = false;
 }
 function jsonout_add_flop(ctx, val)
 {
+	if (!ctx.veryfirst)
+	{
+		jsonout_indent(ctx, !ctx.first);
+	}
+	ctx.veryfirst = false;
+	jsonout_internal_put_flop(ctx, val);
+	ctx.first = false;
 }
 function jsonout_add_flop_ex(ctx, val)
 {
+	if (!ctx.veryfirst)
+	{
+		jsonout_indent(ctx, !ctx.first);
+	}
+	ctx.veryfirst = false;
+	jsonout_internal_put_flop_ex(ctx, val);
+	ctx.first = false;
 }
 
 module.exports = {
@@ -1315,11 +1461,11 @@ module.exports = {
 	jsonout_add_null,
 	jsonout_comment,
 	jsonout_put_number,
-	jsonout_put_number_ex,
+	jsonout_put_number_ex, // convert NaN/Inf to null
 	jsonout_put_flop,
-	jsonout_put_flop_ex,
+	jsonout_put_flop_ex, // convert NaN/Inf to null
 	jsonout_add_number,
-	jsonout_add_number_ex,
+	jsonout_add_number_ex, // convert NaN/Inf to null
 	jsonout_add_flop,
-	jsonout_add_flop_ex,
+	jsonout_add_flop_ex, // convert NaN/Inf to null
 };
