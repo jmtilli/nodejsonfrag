@@ -810,6 +810,10 @@ function jsonstream_feed(jsonstream, buf, start, sz, eof)
 	{
 		return 0;
 	}
+	if (eof)
+	{
+		throw new Error("invalid JSON, parsing not finished at end");
+	}
 	return -1;
 }
 function jsonstream_is_valid_json(x, allow_comments)
