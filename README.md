@@ -48,7 +48,7 @@ all at once" parsing methods, but it is cumbersome.
 A jsonstream-based parser is implemented here:
 
 ```
-const nodejsonfrag = require('.');
+const nodejsonfrag = require('nodejsonfrag');
 const fs = require('fs');
 
 var context = [];
@@ -122,7 +122,7 @@ It can be seen that the parser is quite cumbersome and the code to construct a c
 What if we could combine the benefits of the jsonstream-based approach with the benefits of the "read whole parse tree into memory" based approach? A parse tree fragment for a single customer dictionary is small enough to be kept in memory. This is what the new library is about. Here is the code to parse the customer file with the new library:
 
 ```
-const nodejsonfrag = require('.');
+const nodejsonfrag = require('nodejsonfrag');
 const fs = require('fs');
 
 function my_start_dict(ctx, key)
@@ -166,7 +166,7 @@ Note how the code is significantly more simple than for the event-based approach
 Of course, the new library supports getting the whole parse tree in memory:
 
 ```
-const nodejsonfrag = require('.');
+const nodejsonfrag = require('nodejsonfrag');
 const fs = require('fs');
 
 buf = fs.readFileSync('customers.json', 'utf8');
