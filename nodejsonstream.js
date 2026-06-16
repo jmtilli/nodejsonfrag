@@ -1042,7 +1042,7 @@ function jsonout_stringify_one(ctx, key, o)
 			jsonout_put_null(ctx, key);
 		}
 	}
-	else if (typeof(o) === "number")
+	else if (typeof(o) === "number" || o instanceof Number)
 	{
 		if (key == null)
 		{
@@ -1053,7 +1053,7 @@ function jsonout_stringify_one(ctx, key, o)
 			jsonout_put_number_ex(ctx, key, o);
 		}
 	}
-	else if (typeof(o) === "string")
+	else if (typeof(o) === "string" || o instanceof String)
 	{
 		if (key == null)
 		{
@@ -1064,7 +1064,7 @@ function jsonout_stringify_one(ctx, key, o)
 			jsonout_put_string(ctx, key, o);
 		}
 	}
-	else if (typeof(o) === "boolean")
+	else if (typeof(o) === "boolean" || o instanceof Boolean)
 	{
 		if (key == null)
 		{
