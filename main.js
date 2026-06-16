@@ -1,4 +1,4 @@
-const jsonstream = require('./nodejsonstream');
+const jsonstream = require('.');
 const fs = require('fs');
 
 handler = {
