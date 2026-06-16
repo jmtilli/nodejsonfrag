@@ -988,11 +988,338 @@ function jsonstream_tree_parse(x, allow_comments, allow_trailing_comma)
 	}
 	return result;
 }
+
+const indent_struct = [
+  {"buf": ",\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t"},
+  {"buf": ",\n                                                                      "},
+];
+
+// datasink: function(datasinkctx, str)
+function jsonout_new(tabs, indentamount, datasink, datasinkctx)
+{
+	var result = {};
+	result.commanlindentchars = indent_struct[tabs?0:1].buf;
+	result.indentamount = indentamount;
+	result.curindentlevel = 0;
+	result.first = true;
+	result.veryfirst = true;
+	result.datasink = datasink;
+	result.datasinkctx = datasinkctx;
+	result.commentcomma = false;
+	result.commentnewline = false;
+	return result;
+}
+function jsonout_indent(ctx, comma)
+{
+	var toindent = ctx.curindentlevel * ctx.indentamount;
+	var first = true;
+	var indentchars = ctx.commanlindentchars;
+	var off = 2;
+	var ret;
+	var do_extracomma = false;
+	if (!comma)
+	{
+		indentchars = indentchars.substr(1);
+		off--;
+	}
+	if (ctx.commentcomma)
+	{
+		comma = false;
+		ctx.commentcomma = false;
+	}
+	if (ctx.indentamount == null)
+	{
+		if (comma)
+		{
+			ctx.datasink(ctx.datasinkctx, ",");
+			return;
+		}
+		return;
+	}
+	if (!ctx.commentnewline)
+	{
+		if (toindent == 0)
+		{
+			if (comma)
+			{
+				ctx.datasink(ctx.datasinkctx, ",\n");
+				return;
+			}
+			ctx.datasink(ctx.datasinkctx, "\n");
+			return;
+		}
+	}
+	if (ctx.commentnewline && !comma)
+	{
+		first = false;
+	}
+	else if (ctx.commentnewline && comma)
+	{
+		first = false;
+		do_extracomma = true;
+	}
+	ctx.commentnewline = false;
+	while (toindent > 0)
+	{
+		var thisround = toindent;
+		var sub;
+		if (thisround > indentchars.length - 2)
+		{
+			thisround = indentchars.length - 2;
+		}
+		if (first)
+		{
+			sub = indentchars.substr(0, thisround+off);
+		}
+		else
+		{
+			sub = indentchars.substr(off, thisround);
+		}
+		ctx.datasink(ctx.datasinkctx, sub);
+		toindent -= thisround;
+		first = false;
+	}
+	if (do_extracomma)
+	{
+		ctx.datasink(ctx.datasinkctx, ", ");
+	}
+}
+function jsonout_internal_put_string(ctx, val)
+{
+	ctx.datasink(ctx.datasinkctx, JSON.stringify(String(val)));
+}
+function jsonout_put_start_dict(ctx, key)
+{
+	if (ctx.veryfirst)
+	{
+		throw new Error("logic error");
+	}
+	jsonout_indent(ctx, !ctx.first);
+	jsonout_internal_put_string(ctx, key);
+	ctx.first = true;
+	ctx.curindentlevel++;
+	if (ctx.indentamount == null)
+	{
+		ctx.datasink(ctx.datasinkctx, ":{");
+	}
+	else
+	{
+		ctx.datasink(ctx.datasinkctx, ": {");
+	}
+}
+function jsonout_put_start_array(ctx, key)
+{
+	if (ctx.veryfirst)
+	{
+		throw new Error("logic error");
+	}
+	jsonout_indent(ctx, !ctx.first);
+	jsonout_internal_put_string(ctx, key);
+	ctx.first = true;
+	ctx.curindentlevel++;
+	if (ctx.indentamount == null)
+	{
+		ctx.datasink(ctx.datasinkctx, ":[");
+	}
+	else
+	{
+		ctx.datasink(ctx.datasinkctx, ": [");
+	}
+}
+function jsonout_add_start_dict(ctx)
+{
+	if (!ctx.veryfirst)
+	{
+		jsonout_indent(ctx, !ctx.first);
+	}
+	ctx.veryfirst = false;
+	ctx.first = true;
+	ctx.curindentlevel++;
+	ctx.datasink(ctx.datasinkctx, "{");
+}
+function jsonout_add_start_array(ctx)
+{
+	if (!ctx.veryfirst)
+	{
+		jsonout_indent(ctx, !ctx.first);
+	}
+	ctx.veryfirst = false;
+	ctx.first = true;
+	ctx.curindentlevel++;
+	ctx.datasink(ctx.datasinkctx, "[");
+}
+function jsonout_end_dict(ctx)
+{
+	if (ctx.curindentlevel == 0)
+	{
+		throw new Error("logic error");
+	}
+	ctx.curindentlevel--;
+	if (!ctx.first)
+	{
+		jsonout_indent(ctx, false);
+	}
+	ctx.first = false;
+	ctx.datasink(ctx.datasinkctx, "}");
+}
+function jsonout_end_array(ctx)
+{
+	if (ctx.curindentlevel == 0)
+	{
+		throw new Error("logic error");
+	}
+	ctx.curindentlevel--;
+	if (!ctx.first)
+	{
+		jsonout_indent(ctx, false);
+	}
+	ctx.first = false;
+	ctx.datasink(ctx.datasinkctx, "]");
+}
+function jsonout_put_string(ctx, key, val)
+{
+	if (ctx.veryfirst)
+	{
+		throw new Error("logic error");
+	}
+	jsonout_indent(ctx, !ctx.first);
+	jsonout_internal_put_string(ctx, key);
+	if (ctx.indentamount == null)
+	{
+		ctx.datasink(ctx.datasinkctx, ":");
+	}
+	else
+	{
+		ctx.datasink(ctx.datasinkctx, ": ");
+	}
+	ctx.first = false;
+	jsonout_internal_put_string(ctx, val);
+}
+function jsonout_add_string(ctx, val)
+{
+	if (!ctx.veryfirst)
+	{
+		jsonout_indent(ctx, !ctx.first);
+	}
+	ctx.veryfirst = false;
+	jsonout_internal_put_string(ctx, val);
+	ctx.first = false;
+}
+function jsonout_put_boolean(ctx, key, val)
+{
+	if (ctx.veryfirst)
+	{
+		throw new Error("logic error");
+	}
+	jsonout_indent(ctx, !ctx.first);
+	jsonout_internal_put_string(ctx, key);
+	if (val)
+	{
+		ctx.datasink(ctx.datasinkctx, (ctx.indentamount == null) ? ":true" : ": true");
+	}
+	else
+	{
+		ctx.datasink(ctx.datasinkctx, (ctx.indentamount == null) ? ":false" : ": false");
+	}
+	ctx.first = false;
+}
+function jsonout_add_boolean(ctx, val)
+{
+	if (!ctx.veryfirst)
+	{
+		jsonout_indent(ctx, !ctx.first);
+	}
+	ctx.veryfirst = false;
+	if (val)
+	{
+		ctx.datasink(ctx.datasinkctx, "true");
+	}
+	else
+	{
+		ctx.datasink(ctx.datasinkctx, "false");
+	}
+	ctx.first = false;
+}
+function jsonout_put_null(ctx, key)
+{
+	if (ctx.veryfirst)
+	{
+		throw new Error("logic error");
+	}
+	jsonout_indent(ctx, !ctx.first);
+	jsonout_internal_put_string(ctx, key);
+	ctx.datasink(ctx.datasinkctx, (ctx.indentamount == null) ? ":null" : ": null");
+	ctx.first = false;
+}
+function jsonout_add_null(ctx)
+{
+	if (!ctx.veryfirst)
+	{
+		jsonout_indent(ctx, !ctx.first);
+	}
+	ctx.veryfirst = false;
+	ctx.datasink(ctx.datasinkctx, "null");
+	ctx.first = false;
+}
+
+function jsonout_comment(ctx, comma_seen, comment)
+{
+}
+
+function jsonout_put_number(ctx, key, val)
+{
+}
+function jsonout_put_number_ex(ctx, key, val)
+{
+}
+function jsonout_put_flop(ctx, key, val)
+{
+}
+function jsonout_put_flop_ex(ctx, key, val)
+{
+}
+
+function jsonout_add_number(ctx, val)
+{
+}
+function jsonout_add_number_ex(ctx, val)
+{
+}
+function jsonout_add_flop(ctx, val)
+{
+}
+function jsonout_add_flop_ex(ctx, val)
+{
+}
+
 module.exports = {
 	jsonstream_new,
 	jsonstream_allow_comments,
 	jsonstream_allow_trailing_comma,
 	jsonstream_feed,
 	jsonstream_is_valid_json,
-	jsonstream_tree_parse
+	jsonstream_tree_parse,
+	//
+	jsonout_new,
+	jsonout_put_start_dict,
+	jsonout_put_start_array,
+	jsonout_add_start_dict,
+	jsonout_add_start_array,
+	jsonout_end_dict,
+	jsonout_end_array,
+	jsonout_put_string,
+	jsonout_add_string,
+	jsonout_put_boolean,
+	jsonout_add_boolean,
+	jsonout_put_null,
+	jsonout_add_null,
+	jsonout_comment,
+	jsonout_put_number,
+	jsonout_put_number_ex,
+	jsonout_put_flop,
+	jsonout_put_flop_ex,
+	jsonout_add_number,
+	jsonout_add_number_ex,
+	jsonout_add_flop,
+	jsonout_add_flop_ex,
 };
