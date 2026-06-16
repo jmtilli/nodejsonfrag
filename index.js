@@ -560,7 +560,7 @@ function jsonstream_feed(jsonstream, buf, start, sz, eof)
 				jsonstream_put_keystack_2(jsonstream);
 				continue;
 			}
-			ret = jsonstream.handler.start_dict(jsonstream.handler, jsonstream_get_key(jsonstream));
+			ret = jsonstream.handler.start_dict(jsonstream, jsonstream_get_key(jsonstream));
 			jsonstream_put_keystack_2(jsonstream);
 			if (ret != 0)
 			{
@@ -577,7 +577,7 @@ function jsonstream_feed(jsonstream, buf, start, sz, eof)
 				jsonstream_put_keystack_2(jsonstream);
 				continue;
 			}
-			ret = jsonstream.handler.start_array(jsonstream.handler, jsonstream_get_key(jsonstream));
+			ret = jsonstream.handler.start_array(jsonstream, jsonstream_get_key(jsonstream));
 			jsonstream_put_keystack_2(jsonstream);
 			if (ret != 0)
 			{
