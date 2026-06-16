@@ -1053,7 +1053,7 @@ function jsonout_stringify_one(ctx, key, o)
 			jsonout_put_number_ex(ctx, key, o);
 		}
 	}
-	else if (typeof(o) === "string" || o instanceof String)
+	else if (typeof(o) === "string" || o instanceof String)
 	{
 		if (key == null)
 		{
@@ -1064,7 +1064,7 @@ function jsonout_stringify_one(ctx, key, o)
 			jsonout_put_string(ctx, key, o);
 		}
 	}
-	else if (typeof(o) === "boolean" || o instanceof Boolean)
+	else if (typeof(o) === "boolean" || o instanceof Boolean)
 	{
 		if (key == null)
 		{
@@ -1617,7 +1617,7 @@ function jsonfrag_start_dict(ctx, key)
 	}
 	else
 	{
-		ctx.jsonfrag.n[ctx.jsonfrag.n.length-1][key] = obj;
+		ctx.jsonfrag.n[ctx.jsonfrag.n.length-1][key] = obj;
 	}
 	ctx.jsonfrag.n.push(obj);
 }
@@ -1663,7 +1663,7 @@ function jsonfrag_start_array(ctx, key)
 	}
 	else
 	{
-		ctx.jsonfrag.n[ctx.jsonfrag.n.length-1][key] = obj;
+		ctx.jsonfrag.n[ctx.jsonfrag.n.length-1][key] = obj;
 	}
 	ctx.jsonfrag.n.push(obj);
 }
@@ -1705,7 +1705,7 @@ function jsonfrag_handle_null(ctx, key)
 	}
 	else
 	{
-		ctx.jsonfrag.n[ctx.jsonfrag.n.length-1][key] = null;
+		ctx.jsonfrag.n[ctx.jsonfrag.n.length-1][key] = null;
 	}
 }
 function jsonfrag_handle_string(ctx, key, val)
@@ -1724,7 +1724,7 @@ function jsonfrag_handle_string(ctx, key, val)
 	}
 	else
 	{
-		ctx.jsonfrag.n[ctx.jsonfrag.n.length-1][key] = val;
+		ctx.jsonfrag.n[ctx.jsonfrag.n.length-1][key] = val;
 	}
 }
 function jsonfrag_handle_number(ctx, key, val, is_integer)
@@ -1743,7 +1743,7 @@ function jsonfrag_handle_number(ctx, key, val, is_integer)
 	}
 	else
 	{
-		ctx.jsonfrag.n[ctx.jsonfrag.n.length-1][key] = val;
+		ctx.jsonfrag.n[ctx.jsonfrag.n.length-1][key] = val;
 	}
 }
 function jsonfrag_handle_boolean(ctx, key, val)
@@ -1762,7 +1762,7 @@ function jsonfrag_handle_boolean(ctx, key, val)
 	}
 	else
 	{
-		ctx.jsonfrag.n[ctx.jsonfrag.n.length-1][key] = val;
+		ctx.jsonfrag.n[ctx.jsonfrag.n.length-1][key] = val;
 	}
 }
 
