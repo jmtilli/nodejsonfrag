@@ -1009,6 +1009,103 @@ function jsonout_new(tabs, indentamount, datasink, datasinkctx)
 	result.commentnewline = false;
 	return result;
 }
+function isObject(val) {
+    if (val === null) { return false;}
+    return ( (typeof val === 'function') || (typeof val === 'object') );
+}
+function jsonout_stringify_one(ctx, key, o)
+{
+	if (Array.isArray(o))
+	{
+		if (key == null)
+		{
+			jsonout_add_start_array(ctx);
+		}
+		else
+		{
+			jsonout_put_start_array(ctx, key);
+		}
+		for (var o2 of o)
+		{
+			jsonout_stringify_one(ctx, null, o2);
+		}
+		jsonout_end_array(ctx);
+	}
+	else if (o == null)
+	{
+		if (key == null)
+		{
+			jsonout_add_null(ctx);
+		}
+		else
+		{
+			jsonout_put_null(ctx, key);
+		}
+	}
+	else if (typeof(o) === "number")
+	{
+		if (key == null)
+		{
+			jsonout_add_number_ex(ctx, o);
+		}
+		else
+		{
+			jsonout_put_number_ex(ctx, key, o);
+		}
+	}
+	else if (typeof(o) === "string")
+	{
+		if (key == null)
+		{
+			jsonout_add_string(ctx, o);
+		}
+		else
+		{
+			jsonout_put_string(ctx, key, o);
+		}
+	}
+	else if (typeof(o) === "boolean")
+	{
+		if (key == null)
+		{
+			jsonout_add_boolean(ctx, o);
+		}
+		else
+		{
+			jsonout_put_boolean(ctx, key, o);
+		}
+	}
+	else if (isObject(o))
+	{
+		if (key == null)
+		{
+			jsonout_add_start_dict(ctx);
+		}
+		else
+		{
+			jsonout_put_start_dict(ctx, key);
+		}
+		for (var o2 of Object.keys(o))
+		{
+			jsonout_stringify_one(ctx, o2, o[o2]);
+		}
+		jsonout_end_dict(ctx);
+	}
+	else
+	{
+		throw new Error("Invalid JSON type");
+	}
+}
+function jsonout_stringify(tabs, indentamount, o)
+{
+	var outs = [];
+	var st = [];
+	var outctx = jsonout_new(tabs, indentamount, function(sinkctx, s) {
+		outs.push(s);
+	}, null);
+	jsonout_stringify_one(outctx, null, o);
+	return outs.join('');
+}
 function jsonout_indent(ctx, comma)
 {
 	var toindent = ctx.curindentlevel * ctx.indentamount;
@@ -1445,6 +1542,8 @@ module.exports = {
 	jsonstream_feed,
 	jsonstream_is_valid_json,
 	jsonstream_tree_parse,
+	//
+	jsonout_stringify,
 	//
 	jsonout_new,
 	jsonout_put_start_dict,
