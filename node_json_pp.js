@@ -1,11 +1,89 @@
 const nodejsonfrag = require('.');
 const fs = require('fs');
 
-var output_comments = true;
-var input_comments = true;
-var input_trailing_comma = true;
+var args = process.argv.slice(2);
+var commentargcnt = 0;
+var input_trailing_comma = false;
 var use_tabs_for_indentation = false;
-var indentation_level = 4; // nonnegative integer or null
+var nopretty = false;
+var indentation_level = -1; // nonnegative integer or null
+
+function usage()
+{
+  console.error("Usage: node node_json_pp.js [-t] [-n] [-C [-C]] [-c count]");
+  process.exit(1);
+}
+
+for (var i = 0; i < args.length; i++)
+{
+  var arg = args[i];
+  if (arg == "--")
+  {
+    if (i != args.length-1)
+    {
+      usage();
+    }
+    break;
+  }
+  else if (arg == "-C")
+  {
+    commentargcnt++;
+  }
+  else if (arg == "-T")
+  {
+    input_trailing_comma = true;
+  }
+  else if (arg == "-t")
+  {
+    use_tabs_for_indentation = true;
+  }
+  else if (arg == "-n")
+  {
+    nopretty = true;
+  }
+  else if (arg == "-c")
+  {
+    i++;
+    indentation_level = Number(args[i]);
+    if (indentation_level < 0 || !Number.isInteger(indentation_level))
+    {
+      usage();
+    }
+    continue;
+  }
+  else if (arg == "-h")
+  {
+    usage();
+  }
+  else if (arg && arg[0] == "-")
+  {
+    usage();
+  }
+  else
+  {
+    // non-option
+    usage();
+  }
+}
+
+var output_comments = (commentargcnt >= 2);
+var input_comments = (commentargcnt >= 1);
+
+if (indentation_level < 0)
+{
+  if (use_tabs_for_indentation)
+  {
+    indentation_level = 1;
+  }
+  else
+  {
+    indentation_level = 4;
+  }
+}
+if (nopretty)
+{
+  indentation_level = null;
+}
 
 const ctxout = nodejsonfrag.jsonout_new(use_tabs_for_indentation, indentation_level, function(ctx, str) {
   process.stdout.write(str);
