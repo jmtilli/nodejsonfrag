@@ -821,13 +821,17 @@ function jsonstream_feed(jsonstream, buf, start, sz, eof)
 	}
 	return -1;
 }
-function jsonstream_is_valid_json(x, allow_comments)
+function jsonstream_is_valid_json(x, allow_comments, allow_trailing_comma)
 {
 	var handler = {};
 	var ctx = jsonstream_new(handler);
 	if (allow_comments)
 	{
 		jsonstream_allow_comments(ctx);
+	}
+	if (allow_trailing_comma)
+	{
+		jsonstream_allow_trailing_comma(ctx);
 	}
 	try {
 		var ret = jsonstream_feed(ctx, x, 0, x.length, true);
