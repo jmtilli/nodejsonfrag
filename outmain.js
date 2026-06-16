@@ -1,0 +1,32 @@
+const jsonstream = require('.');
+
+ctxout = jsonstream.jsonout_new(false, 4, function(ctx, str) {
+  process.stdout.write(str);
+}, null);
+jsonstream.jsonout_add_start_dict(ctxout);
+jsonstream.jsonout_put_start_dict(ctxout, "bar");
+jsonstream.jsonout_end_dict(ctxout);
+jsonstream.jsonout_put_start_array(ctxout, "foo");
+jsonstream.jsonout_add_boolean(ctxout, false);
+jsonstream.jsonout_add_boolean(ctxout, true);
+jsonstream.jsonout_add_string(ctxout, "bar");
+jsonstream.jsonout_add_null(ctxout);
+jsonstream.jsonout_add_number(ctxout, 123);
+jsonstream.jsonout_add_number_ex(ctxout, 123);
+jsonstream.jsonout_add_flop(ctxout, 123);
+jsonstream.jsonout_add_flop_ex(ctxout, 123);
+jsonstream.jsonout_add_start_array(ctxout);
+jsonstream.jsonout_end_array(ctxout);
+jsonstream.jsonout_add_start_dict(ctxout);
+jsonstream.jsonout_end_dict(ctxout);
+jsonstream.jsonout_end_array(ctxout);
+jsonstream.jsonout_put_number(ctxout, "a", 123);
+jsonstream.jsonout_put_number_ex(ctxout, "b", 123);
+jsonstream.jsonout_put_flop(ctxout, "c", 123);
+jsonstream.jsonout_put_flop_ex(ctxout, "d", 123);
+jsonstream.jsonout_put_boolean(ctxout, "e", false);
+jsonstream.jsonout_put_boolean(ctxout, "f", true);
+jsonstream.jsonout_put_null(ctxout, "g");
+jsonstream.jsonout_put_string(ctxout, "h", "quux");
+jsonstream.jsonout_end_dict(ctxout);
+process.stdout.write('\n');
