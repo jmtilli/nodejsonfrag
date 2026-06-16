@@ -160,7 +160,7 @@ function jsonstream_strip_comment(jsonstream, buf, start, i, sz, eof)
 					ret = jsonstream.handler.handle_comment(jsonstream, jsonstream.comma_seen, jsonstream.val, true);
 					if (ret != 0)
 					{
-						return ret;
+						//return ret;
 					}
 				}
 			}
@@ -186,7 +186,7 @@ function jsonstream_strip_comment(jsonstream, buf, start, i, sz, eof)
 					ret = jsonstream.handler.handle_comment(jsonstream, jsonstream.comma_seen, jsonstream.val, false);
 					if (ret != 0)
 					{
-						return ret;
+						//return ret;
 					}
 				}
 			}
@@ -268,7 +268,7 @@ function jsonstream_feed(jsonstream, buf, start, sz, eof)
 				ret = jsonstream.handler.handle_string(jsonstream, jsonstream_get_key(jsonstream), jsonstream.val);
 				if (ret != 0)
 				{
-					return ret;
+					//return ret;
 				}
 				if (jsonstream.keystack.length <= 0)
 				{
@@ -406,7 +406,7 @@ function jsonstream_feed(jsonstream, buf, start, sz, eof)
 					ret = jsonstream.handler.handle_comment(jsonstream, jsonstream.comma_seen, jsonstream.val, true);
 					if (ret != 0)
 					{
-						return ret;
+						//return ret;
 					}
 				}
 			}
@@ -431,7 +431,7 @@ function jsonstream_feed(jsonstream, buf, start, sz, eof)
 					ret = jsonstream.handler.handle_comment(jsonstream, jsonstream.comma_seen, jsonstream.val, false);
 					if (ret != 0)
 					{
-						return ret;
+						//return ret;
 					}
 				}
 			}
@@ -505,7 +505,7 @@ function jsonstream_feed(jsonstream, buf, start, sz, eof)
 				ret = jsonstream.handler.end_dict(jsonstream, jsonstream_get_key(jsonstream));
 				if (ret != 0)
 				{
-					return ret;
+					//return ret;
 				}
 				if (jsonstream.keystack.length <= 0)
 				{
@@ -541,7 +541,7 @@ function jsonstream_feed(jsonstream, buf, start, sz, eof)
 				ret = jsonstream.handler.end_array(jsonstream, jsonstream_get_key(jsonstream));
 				if (ret != 0)
 				{
-					return ret;
+					//return ret;
 				}
 				if (jsonstream.keystack.length <= 0)
 				{
@@ -564,7 +564,7 @@ function jsonstream_feed(jsonstream, buf, start, sz, eof)
 			jsonstream_put_keystack_2(jsonstream);
 			if (ret != 0)
 			{
-				return ret;
+				//return ret;
 			}
 			continue;
 		}
@@ -581,7 +581,7 @@ function jsonstream_feed(jsonstream, buf, start, sz, eof)
 			jsonstream_put_keystack_2(jsonstream);
 			if (ret != 0)
 			{
-				return ret;
+				//return ret;
 			}
 			continue;
 		}
@@ -608,7 +608,7 @@ function jsonstream_feed(jsonstream, buf, start, sz, eof)
 			ret = jsonstream.handler.handle_boolean(jsonstream, jsonstream_get_key(jsonstream), true);
 			if (ret != 0)
 			{
-				return ret;
+				//return ret;
 			}
 			if (jsonstream.keystack.length <= 0)
 			{
@@ -640,7 +640,7 @@ function jsonstream_feed(jsonstream, buf, start, sz, eof)
 			ret = jsonstream.handler.handle_boolean(jsonstream, jsonstream_get_key(jsonstream), false);
 			if (ret != 0)
 			{
-				return ret;
+				//return ret;
 			}
 			if (jsonstream.keystack.length <= 0)
 			{
@@ -672,7 +672,7 @@ function jsonstream_feed(jsonstream, buf, start, sz, eof)
 			ret = jsonstream.handler.handle_null(jsonstream, jsonstream_get_key(jsonstream));
 			if (ret != 0)
 			{
-				return ret;
+				//return ret;
 			}
 			if (jsonstream.keystack.length <= 0)
 			{
@@ -772,7 +772,7 @@ function jsonstream_feed(jsonstream, buf, start, sz, eof)
 			ret = jsonstream.handler.handle_number(jsonstream, jsonstream_get_key(jsonstream), numval, jsonstream.is_integer);
 			if (ret != 0)
 			{
-				return ret;
+				//return ret;
 			}
 			if (jsonstream.keystack.length <= 0)
 			{
@@ -798,7 +798,7 @@ function jsonstream_feed(jsonstream, buf, start, sz, eof)
 		ret = jsonstream.handler.handle_number(jsonstream, jsonstream_get_key(jsonstream), Number(jsonstream.val), jsonstream.is_integer);
 		if (ret != 0)
 		{
-			return ret;
+			//return ret;
 		}
 		if (jsonstream.keystack.length <= 0)
 		{
