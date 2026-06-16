@@ -841,10 +841,158 @@ function jsonstream_is_valid_json(x, allow_comments, allow_trailing_comma)
 		return false;
 	}
 }
+function jsonstream_tree_parse(x, allow_comments, allow_trailing_comma)
+{
+	var handler = {};
+	var result = null;
+	var has_result = false;
+	var objstack = [];
+	handler.start_dict = function(ctx, key)
+	{
+		var obj = {};
+		if (!has_result)
+		{
+			has_result = true;
+			result = obj;
+			objstack.push(obj);
+			return;
+		}
+		if (key == null)
+		{
+			objstack[objstack.length-1].push(obj);
+		}
+		else
+		{
+			objstack[objstack.length-1][key] = obj;
+		}
+		objstack.push(obj);
+	};
+	handler.end_dict = function(ctx, key)
+	{
+		objstack.pop();
+	};
+	handler.start_array = function(ctx, key)
+	{
+		var obj = [];
+		if (!has_result)
+		{
+			has_result = true;
+			result = obj;
+			objstack.push(obj);
+			return;
+		}
+		if (key == null)
+		{
+			objstack[objstack.length-1].push(obj);
+		}
+		else
+		{
+			objstack[objstack.length-1][key] = obj;
+		}
+		objstack.push(obj);
+	};
+	handler.end_array = function(ctx, key)
+	{
+		objstack.pop();
+	};
+	handler.handle_null = function(ctx, key)
+	{
+		var obj = null;
+		if (!has_result)
+		{
+			has_result = true;
+			result = obj;
+			objstack.push(obj);
+			return;
+		}
+		if (key == null)
+		{
+			objstack[objstack.length-1].push(obj);
+		}
+		else
+		{
+			objstack[objstack.length-1][key] = obj;
+		}
+	};
+	handler.handle_string = function(ctx, key, val)
+	{
+		var obj = val;
+		if (!has_result)
+		{
+			has_result = true;
+			result = obj;
+			objstack.push(obj);
+			return;
+		}
+		if (key == null)
+		{
+			objstack[objstack.length-1].push(obj);
+		}
+		else
+		{
+			objstack[objstack.length-1][key] = obj;
+		}
+	};
+	handler.handle_number = function(ctx, key, val, is_integer)
+	{
+		var obj = val;
+		if (!has_result)
+		{
+			has_result = true;
+			result = obj;
+			objstack.push(obj);
+			return;
+		}
+		if (key == null)
+		{
+			objstack[objstack.length-1].push(obj);
+		}
+		else
+		{
+			objstack[objstack.length-1][key] = obj;
+		}
+	};
+	handler.handle_boolean = function(ctx, key, val)
+	{
+		var obj = val;
+		if (!has_result)
+		{
+			has_result = true;
+			result = obj;
+			objstack.push(obj);
+			return;
+		}
+		if (key == null)
+		{
+			objstack[objstack.length-1].push(obj);
+		}
+		else
+		{
+			objstack[objstack.length-1][key] = obj;
+		}
+	};
+	handler.handle_comment = null;
+	var ctx = jsonstream_new(handler);
+	if (allow_comments)
+	{
+		jsonstream_allow_comments(ctx);
+	}
+	if (allow_trailing_comma)
+	{
+		jsonstream_allow_trailing_comma(ctx);
+	}
+	var ret = jsonstream_feed(ctx, x, 0, x.length, true);
+	if (!has_result)
+	{
+		throw new Error("empty JSON");
+	}
+	return result;
+}
 module.exports = {
 	jsonstream_new,
 	jsonstream_allow_comments,
 	jsonstream_allow_trailing_comma,
 	jsonstream_feed,
-	jsonstream_is_valid_json
+	jsonstream_is_valid_json,
+	jsonstream_tree_parse
 };
