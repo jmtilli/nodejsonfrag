@@ -741,7 +741,7 @@ function jsonstream_feed(jsonstream, buf, start, sz, eof)
 				jsonstream.val += buf[start+i];
 				continue;
 			}
-			if ((buf[start+i] == '-' || buf[start+i] == '+') &&
+			if ((buf[start+i] == '-' || buf[start+i] == '+') &&
 			    (jsonstream.val.indexOf("E") == jsonstream.val.length-1 ||
 			     jsonstream.val.indexOf("e") == jsonstream.val.length-1))
 			{
