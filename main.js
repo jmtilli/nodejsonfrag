@@ -19,3 +19,6 @@ console.log(jsonstream.jsonout_stringify(false, 4, new Number(2)));
 console.log(jsonstream.jsonout_stringify(false, 4, new Boolean(true)));
 console.log(jsonstream.jsonstream_is_valid_json_errloc("123a", true, true));
 console.log(jsonstream.jsonstream_is_valid_json_errloc("[1,2,3,]", false, false));
+console.log(jsonstream.jsonstream_is_valid_json_errloc("a", false, false));
+
+console.log(jsonstream.jsonstream_pretty_print(buf, {"allow_comments": true, "allow_trailing_comma": true, "indentation_level": 4}));
