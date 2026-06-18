@@ -137,6 +137,7 @@ function jsonstream_strip_comment(jsonstream, buf, start, i, sz, eof)
 			}
 			if (buf[start+i] != '/')
 			{
+				jsonstream.errloc = i;
 				throw new Error("illegal comment");
 			}
 			jsonstream.comment_seen_preliminary = false;
@@ -202,10 +203,12 @@ function jsonstream_strip_comment(jsonstream, buf, start, i, sz, eof)
 			i++;
 			continue;
 		}
+		jsonstream.errloc = i;
 		throw new Error("Overflow");
 	}
 	if (eof && (jsonstream.c_comment_seen || jsonstream.comment_seen_preliminary))
 	{
+		jsonstream.errloc = i;
 		throw new Error("Unterminated beginning of comment");
 	}
 }
@@ -311,6 +314,7 @@ function jsonstream_feed(jsonstream, buf, start, sz, eof)
 			}
 			else
 			{
+				jsonstream.errloc = i;
 				throw new Error("Illegal sequence");
 			}
 			continue;
@@ -352,6 +356,7 @@ function jsonstream_feed(jsonstream, buf, start, sz, eof)
 			}
 			else
 			{
+				jsonstream.errloc = i;
 				throw new Error("Illegal sequence");
 			}
 			continue;
@@ -384,6 +389,7 @@ function jsonstream_feed(jsonstream, buf, start, sz, eof)
 			}
 			if (buf[start+i] != '/')
 			{
+				jsonstream.errloc = i;
 				throw new Error("illegal comment");
 			}
 			jsonstream.comment_seen_preliminary = false;
@@ -456,6 +462,7 @@ function jsonstream_feed(jsonstream, buf, start, sz, eof)
 		{
 			if (buf[start+i] != ':')
 			{
+				jsonstream.errloc = i;
 				throw new Error("Invalid JSON");
 			}
 			jsonstream.mode = JSONSTREAM_MODE_VAL;
@@ -487,6 +494,7 @@ function jsonstream_feed(jsonstream, buf, start, sz, eof)
 				{
 					if (!jsonstream.keypresent)
 					{
+						jsonstream.errloc = i;
 						throw new Error("invalid JSON");
 					}
 					// could be array or dict
@@ -523,6 +531,7 @@ function jsonstream_feed(jsonstream, buf, start, sz, eof)
 				{
 					if (jsonstream.keypresent || jsonstream.keystack.length <= 0)
 					{
+						jsonstream.errloc = i;
 						throw new Error("invalid JSON");
 					}
 					// could be array or dict
@@ -589,6 +598,7 @@ function jsonstream_feed(jsonstream, buf, start, sz, eof)
 		{
 			if (buf[start+i] != "true"[jsonstream.sz++])
 			{
+				jsonstream.errloc = i;
 				throw new Error("invalid JSON");
 			}
 			if (jsonstream.sz < 4)
@@ -621,6 +631,7 @@ function jsonstream_feed(jsonstream, buf, start, sz, eof)
 		{
 			if (buf[start+i] != "false"[jsonstream.sz++])
 			{
+				jsonstream.errloc = i;
 				throw new Error("invalid JSON");
 			}
 			if (jsonstream.sz < 5)
@@ -653,6 +664,7 @@ function jsonstream_feed(jsonstream, buf, start, sz, eof)
 		{
 			if (buf[start+i] != "null"[jsonstream.sz++])
 			{
+				jsonstream.errloc = i;
 				throw new Error("invalid JSON");
 			}
 			if (jsonstream.sz < 4)
@@ -782,6 +794,7 @@ function jsonstream_feed(jsonstream, buf, start, sz, eof)
 			continue;
 		}
 		//console.log(jsonstream.mode);
+		jsonstream.errloc = i;
 		throw new Error("invalid JSON");
 	}
 	if (jsonstream.mode == JSONSTREAM_MODE_NUMBER && eof)
@@ -793,6 +806,7 @@ function jsonstream_feed(jsonstream, buf, start, sz, eof)
 			{
 				return 0;
 			}
+			jsonstream.errloc = i;
 			throw new Error("invalid JSON");
 		}
 		ret = jsonstream.handler.handle_number(jsonstream, jsonstream_get_key(jsonstream), Number(jsonstream.val), jsonstream.is_integer);
@@ -804,10 +818,12 @@ function jsonstream_feed(jsonstream, buf, start, sz, eof)
 		{
 			return 0;
 		}
+		jsonstream.errloc = i;
 		throw new Error("invalid JSON");
 	}
 	if (eof && (jsonstream.c_comment_seen || jsonstream.comment_seen_preliminary))
 	{
+		jsonstream.errloc = i;
 		throw new Error("Unterminated beginning of comment");
 	}
 	if (jsonstream.keystack.length <= 0 && eof &&
@@ -817,9 +833,30 @@ function jsonstream_feed(jsonstream, buf, start, sz, eof)
 	}
 	if (eof)
 	{
+		jsonstream.errloc = i;
 		throw new Error("invalid JSON, parsing not finished at end");
 	}
 	return -1;
+}
+function jsonstream_is_valid_json_errloc(x, allow_comments, allow_trailing_comma)
+{
+	var handler = {};
+	var ctx = jsonstream_new(handler);
+	if (allow_comments)
+	{
+		jsonstream_allow_comments(ctx);
+	}
+	if (allow_trailing_comma)
+	{
+		jsonstream_allow_trailing_comma(ctx);
+	}
+	try {
+		var ret = jsonstream_feed(ctx, x, 0, x.length, true);
+		return {"valid": (ret == 0)};
+	}
+	catch {
+		return {"valid": false, "errloc": ctx.errloc};
+	}
 }
 function jsonstream_is_valid_json(x, allow_comments, allow_trailing_comma)
 {
@@ -1805,6 +1842,7 @@ module.exports = {
 	jsonstream_allow_trailing_comma,
 	jsonstream_feed,
 	//
+	jsonstream_is_valid_json_errloc,
 	jsonstream_is_valid_json,
 	//
 	jsonstream_tree_parse,

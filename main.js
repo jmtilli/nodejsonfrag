@@ -17,3 +17,5 @@ console.log(jsonstream.jsonout_stringify(false, 4, jsonstream.jsonstream_tree_pa
 console.log(jsonstream.jsonout_stringify(false, 4, new String("foo")));
 console.log(jsonstream.jsonout_stringify(false, 4, new Number(2)));
 console.log(jsonstream.jsonout_stringify(false, 4, new Boolean(true)));
+console.log(jsonstream.jsonstream_is_valid_json_errloc("123a", true, true));
+console.log(jsonstream.jsonstream_is_valid_json_errloc("[1,2,3,]", false, false));
