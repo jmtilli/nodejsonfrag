@@ -855,7 +855,10 @@ function jsonstream_is_valid_json_errloc(x, allow_comments, allow_trailing_comma
 		return {"valid": (ret == 0)};
 	}
 	catch {
-		return {"valid": false, "errloc": ctx.errloc};
+		var lines = x.substring(0,ctx.errloc).split("\n");
+		return {"valid": false, "errloc": ctx.errloc,
+		        "errline": lines.length-1,
+		        "errcol": lines[lines.length-1].length};
 	}
 }
 function jsonstream_is_valid_json(x, allow_comments, allow_trailing_comma)
