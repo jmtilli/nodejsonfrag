@@ -338,7 +338,7 @@ function jsonstream_feed(jsonstream, buf, start, sz, eof)
 				throw new Error("Illegal unicode escape");
 			}
 		}
-		else if (jsonstream.mode == JSONSTREAM_MODE_STRING_UESCAPE)
+		else if (jsonstream.mode == JSONSTREAM_MODE_STRING_UESCAPE && jsonstream.uescape.length < 4)
 		{
 			if ((buf[start+i] >= '0' && buf[start+i] <= '9') ||
 			    (buf[start+i] >= 'A' && buf[start+i] <= 'F') ||
