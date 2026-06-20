@@ -310,7 +310,7 @@ function jsonstream_feed(jsonstream, buf, start, sz, eof)
 			else if (buf[start+i] == 'u')
 			{
 				jsonstream.mode = JSONSTREAM_MODE_KEYSTRING_UESCAPE;
-				jsonstream.sz = 0;
+				jsonstream.uescape = '';
 			}
 			else
 			{
@@ -319,13 +319,43 @@ function jsonstream_feed(jsonstream, buf, start, sz, eof)
 			}
 			continue;
 		}
-		else if (jsonstream.mode == JSONSTREAM_MODE_KEYSTRING_UESCAPE)
+		else if (jsonstream.mode == JSONSTREAM_MODE_KEYSTRING_UESCAPE && jsonstream.uescape.length < 4)
 		{
-			// FIXME implement
+			if ((buf[start+i] >= '0' && buf[start+i] <= '9') ||
+			    (buf[start+i] >= 'A' && buf[start+i] <= 'F') ||
+			    (buf[start+i] >= 'a' && buf[start+i] <= 'f'))
+			{
+				jsonstream.uescape += buf[start+i];
+				if (jsonstream.uescape.length == 4)
+				{
+					jsonstream.key += String.fromCodePoint(parseInt(jsonstream.uescape,16));
+					jsonstream.mode = JSONSTREAM_MODE_KEYSTRING;
+				}
+				continue;
+			}
+			else
+			{
+				throw new Error("Illegal unicode escape");
+			}
 		}
 		else if (jsonstream.mode == JSONSTREAM_MODE_STRING_UESCAPE)
 		{
-			// FIXME implement
+			if ((buf[start+i] >= '0' && buf[start+i] <= '9') ||
+			    (buf[start+i] >= 'A' && buf[start+i] <= 'F') ||
+			    (buf[start+i] >= 'a' && buf[start+i] <= 'f'))
+			{
+				jsonstream.uescape += buf[start+i];
+				if (jsonstream.uescape.length == 4)
+				{
+					jsonstream.val += String.fromCodePoint(parseInt(jsonstream.uescape,16));
+					jsonstream.mode = JSONSTREAM_MODE_STRING;
+				}
+				continue;
+			}
+			else
+			{
+				throw new Error("Illegal unicode escape");
+			}
 		}
 		else if (jsonstream.mode == JSONSTREAM_MODE_STRING_ESCAPE)
 		{
@@ -352,7 +382,7 @@ function jsonstream_feed(jsonstream, buf, start, sz, eof)
 			else if (buf[start+i] == 'u')
 			{
 				jsonstream.mode = JSONSTREAM_MODE_STRING_UESCAPE;
-				jsonstream.sz = 0;
+				jsonstream.uescape = '';
 			}
 			else
 			{
