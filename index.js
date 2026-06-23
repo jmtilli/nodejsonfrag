@@ -16,6 +16,19 @@ JSONSTREAM_MODE_COMMA = 15;
 JSONSTREAM_MODE_NUMBER = 16;
 JSONSTREAM_MODE_ENDWS = 17;
 
+JSONNUM_START = 101;
+JSONNUM_MINUS_NOT_PERMITTED = 102;
+JSONNUM_NUMBER_DID_NOT_START_WITH_ZERO = 103;
+JSONNUM_NUMBER_DONE = 104;
+JSONNUM_PERIOD_SEEN = 105;
+JSONNUM_PERIOD_DIGIT_SEEN = 106;
+JSONNUM_FRACTION_SEEN = 107;
+JSONNUM_E_SEEN = 108;
+JSONNUM_EPLUSMINUS_SEEN = 109;
+JSONNUM_EXPONENT_DIGIT_SEEN = 110;
+JSONNUM_EXPONENT_SEEN = 111;
+
+
 /*
    handler: {
      .start_dict(jsonstream, key)
@@ -756,48 +769,96 @@ function jsonstream_feed(jsonstream, buf, start, sz, eof)
 		if ((jsonstream.mode == JSONSTREAM_MODE_VAL || jsonstream.mode == JSONSTREAM_MODE_FIRSTVAL) && (buf[start+i] == '-' || (buf[start+i] >= '0' && buf[start+i] <= '9')))
 		{
 			jsonstream.mode = JSONSTREAM_MODE_NUMBER;
+			jsonstream.numstate = JSONNUM_START;
 			jsonstream.is_integer = true;
 			jsonstream.val = "";
 		}
 		if (jsonstream.mode == JSONSTREAM_MODE_NUMBER)
 		{
-			if (jsonstream.val == "" && buf[start+i] == '-')
+			if (jsonstream.numstate == JSONNUM_START)
 			{
-				jsonstream.val += buf[start+i];
-				continue;
+				jsonstream.numstate = JSONNUM_MINUS_NOT_PERMITTED;
+				if (buf[start+i] == '-')
+				{
+					jsonstream.val += buf[start+i];
+					continue;
+				}
 			}
-			if ((jsonstream.val == "" || jsonstream.val == "-") && 
-			    (buf[start+i] >= '0' && buf[start+i] <= '9'))
+			if (jsonstream.numstate == JSONNUM_MINUS_NOT_PERMITTED)
 			{
-				jsonstream.val += buf[start+i];
-				continue;
+				if (buf[start+i] == '0')
+				{
+					jsonstream.numstate = JSONNUM_NUMBER_DONE;
+					jsonstream.val += buf[start+i];
+					continue;
+				}
+				else if (buf[start+i] >= '1' && buf[start+i] <= '9')
+				{
+					jsonstream.numstate = JSONNUM_NUMBER_DID_NOT_START_WITH_ZERO;
+					jsonstream.val += buf[start+i];
+					continue;
+				}
 			}
-			if ((jsonstream.val != "0" && jsonstream.val != "-0") &&
-			    (buf[start+i] >= '0' && buf[start+i] <= '9'))
+			else if (jsonstream.numstate == JSONNUM_NUMBER_DID_NOT_START_WITH_ZERO)
 			{
-				jsonstream.val += buf[start+i];
-				continue;
+				if (buf[start+i] >= '0' && buf[start+i] <= '9')
+				{
+					jsonstream.val += buf[start+i];
+					continue;
+				}
+				jsonstream.numstate = JSONNUM_NUMBER_DONE;
 			}
-			if (buf[start+i] == '.' && jsonstream.val.indexOf(".") == -1 &&
-			    jsonstream.val.indexOf("E") == -1 && jsonstream.val.indexOf("e") == -1)
+			if (jsonstream.numstate == JSONNUM_NUMBER_DONE && buf[start+i] == '.')
 			{
+				jsonstream.numstate = JSONNUM_PERIOD_SEEN;
 				jsonstream.is_integer = false;
 				jsonstream.val += buf[start+i];
 				continue;
 			}
-			if ((buf[start+i] == 'E' || buf[start+i] == 'e') &&
-			    jsonstream.val.indexOf("E") == -1 && jsonstream.val.indexOf("e") == -1)
+			else if ((jsonstream.numstate == JSONNUM_PERIOD_SEEN || jsonstream.numstate == JSONNUM_PERIOD_DIGIT_SEEN) && (buf[start+i] >= '0' && buf[start+i] <= '9'))
 			{
-				jsonstream.is_integer = false;
+				jsonstream.numstate = JSONNUM_PERIOD_DIGIT_SEEN;
 				jsonstream.val += buf[start+i];
 				continue;
 			}
-			if ((buf[start+i] == '-' || buf[start+i] == '+') &&
-			    (jsonstream.val.indexOf("E") == jsonstream.val.length-1 ||
-			     jsonstream.val.indexOf("e") == jsonstream.val.length-1))
+			else if (jsonstream.numstate == JSONNUM_NUMBER_DONE || jsonstream.numstate == JSONNUM_PERIOD_DIGIT_SEEN)
 			{
+				jsonstream.numstate = JSONNUM_FRACTION_SEEN;
+			}
+			if ((jsonstream.numstate == JSONNUM_FRACTION_SEEN) && (buf[start+i] == 'e' || buf[start+i] == 'E'))
+			{
+				jsonstream.is_integer = false;
+				jsonstream.numstate = JSONNUM_E_SEEN;
 				jsonstream.val += buf[start+i];
 				continue;
+			}
+			else if (jsonstream.numstate == JSONNUM_FRACTION_SEEN)
+			{
+				jsonstream.numstate = JSONNUM_EXPONENT_SEEN;
+			}
+			else if (jsonstream.numstate == JSONNUM_E_SEEN)
+			{
+				jsonstream.numstate = JSONNUM_EPLUSMINUS_SEEN;
+				if (buf[start+i] == '-' || buf[start+i] == '+')
+				{
+					jsonstream.val += buf[start+i];
+					continue;
+				}
+			}
+			if ((jsonstream.numstate == JSONNUM_EPLUSMINUS_SEEN || jsonstream.numstate == JSONNUM_EXPONENT_DIGIT_SEEN) && buf[start+i] >= '0' && buf[start+i] <= '9')
+			{
+				jsonstream.numstate = JSONNUM_EXPONENT_DIGIT_SEEN;
+				jsonstream.val += buf[start+i];
+				continue;
+			}
+			else if (jsonstream.numstate == JSONNUM_EXPONENT_DIGIT_SEEN)
+			{
+				jsonstream.numstate = JSONNUM_EXPONENT_SEEN;
+			}
+			if (jsonstream.numstate != JSONNUM_EXPONENT_SEEN)
+			{
+				jsonstream.errloc = i;
+				throw new Error("invalid number");
 			}
 			numval = Number(jsonstream.val);
 			jsonstream.mode = JSONSTREAM_MODE_COMMA;
