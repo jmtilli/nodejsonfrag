@@ -348,6 +348,7 @@ function jsonstream_feed(jsonstream, buf, start, sz, eof)
 			}
 			else
 			{
+				jsonstream.errloc = i;
 				throw new Error("Illegal unicode escape");
 			}
 		}
@@ -367,6 +368,7 @@ function jsonstream_feed(jsonstream, buf, start, sz, eof)
 			}
 			else
 			{
+				jsonstream.errloc = i;
 				throw new Error("Illegal unicode escape");
 			}
 		}
