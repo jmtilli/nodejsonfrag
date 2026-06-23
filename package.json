@@ -1,6 +1,6 @@
 {
   "name": "nodejsonfrag",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Combined tree/event based JSON parser and JSON output library",
   "main": "index.js",
   "scripts": {
