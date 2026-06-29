@@ -1,8 +1,11 @@
 {
   "name": "nodejsonfrag",
-  "version": "1.2.1",
+  "version": "1.3.0",
   "description": "Combined tree/event based JSON parser and JSON output library",
   "main": "index.js",
+  "directories": {
+    "bin": "./bin"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
