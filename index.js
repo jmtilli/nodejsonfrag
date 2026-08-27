@@ -303,22 +303,42 @@ function jsonstream_feed(jsonstream, buf, start, sz, eof)
 			if (buf[start+i] == 'b')
 			{
 				jsonstream_put_key(jsonstream, '\b');
+				jsonstream.mode = JSONSTREAM_MODE_KEYSTRING;
 			}
 			else if (buf[start+i] == 'f')
 			{
 				jsonstream_put_key(jsonstream, '\f');
+				jsonstream.mode = JSONSTREAM_MODE_KEYSTRING;
 			}
 			else if (buf[start+i] == 'n')
 			{
 				jsonstream_put_key(jsonstream, '\n');
+				jsonstream.mode = JSONSTREAM_MODE_KEYSTRING;
 			}
 			else if (buf[start+i] == 'r')
 			{
 				jsonstream_put_key(jsonstream, '\r');
+				jsonstream.mode = JSONSTREAM_MODE_KEYSTRING;
 			}
 			else if (buf[start+i] == 't')
 			{
 				jsonstream_put_key(jsonstream, '\t');
+				jsonstream.mode = JSONSTREAM_MODE_KEYSTRING;
+			}
+			else if (buf[start+i] == '/')
+			{
+				jsonstream_put_key(jsonstream, '/');
+				jsonstream.mode = JSONSTREAM_MODE_KEYSTRING;
+			}
+			else if (buf[start+i] == '\\')
+			{
+				jsonstream_put_key(jsonstream, '\\');
+				jsonstream.mode = JSONSTREAM_MODE_KEYSTRING;
+			}
+			else if (buf[start+i] == '"')
+			{
+				jsonstream_put_key(jsonstream, '"');
+				jsonstream.mode = JSONSTREAM_MODE_KEYSTRING;
 			}
 			else if (buf[start+i] == 'u')
 			{
@@ -377,22 +397,42 @@ function jsonstream_feed(jsonstream, buf, start, sz, eof)
 			if (buf[start+i] == 'b')
 			{
 				jsonstream_put_val(jsonstream, '\b');
+				jsonstream.mode = JSONSTREAM_MODE_STRING;
 			}
 			else if (buf[start+i] == 'f')
 			{
 				jsonstream_put_val(jsonstream, '\f');
+				jsonstream.mode = JSONSTREAM_MODE_STRING;
 			}
 			else if (buf[start+i] == 'n')
 			{
 				jsonstream_put_val(jsonstream, '\n');
+				jsonstream.mode = JSONSTREAM_MODE_STRING;
 			}
 			else if (buf[start+i] == 'r')
 			{
 				jsonstream_put_val(jsonstream, '\r');
+				jsonstream.mode = JSONSTREAM_MODE_STRING;
 			}
 			else if (buf[start+i] == 't')
 			{
 				jsonstream_put_val(jsonstream, '\t');
+				jsonstream.mode = JSONSTREAM_MODE_STRING;
+			}
+			else if (buf[start+i] == '/')
+			{
+				jsonstream_put_val(jsonstream, '/');
+				jsonstream.mode = JSONSTREAM_MODE_STRING;
+			}
+			else if (buf[start+i] == '\\')
+			{
+				jsonstream_put_val(jsonstream, '\\');
+				jsonstream.mode = JSONSTREAM_MODE_STRING;
+			}
+			else if (buf[start+i] == '"')
+			{
+				jsonstream_put_val(jsonstream, '"');
+				jsonstream.mode = JSONSTREAM_MODE_STRING;
 			}
 			else if (buf[start+i] == 'u')
 			{
