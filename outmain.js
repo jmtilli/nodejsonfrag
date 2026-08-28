@@ -1,6 +1,6 @@
 import * as jsonstream from './index.js';
 
-ctxout = jsonstream.jsonout_new(false, 4, function(ctx, str) {
+var ctxout = jsonstream.jsonout_new(false, 4, function(ctx, str) {
   process.stdout.write(str);
 }, null);
 jsonstream.jsonout_add_start_dict(ctxout);
