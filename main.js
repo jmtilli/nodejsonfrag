@@ -1,5 +1,5 @@
-const jsonstream = require('.');
-const fs = require('fs');
+import * as jsonstream from './index.js';
+import * as fs from 'fs';
 
 handler = {
 };

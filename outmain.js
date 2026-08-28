@@ -1,4 +1,4 @@
-const jsonstream = require('.');
+import * as jsonstream from './index.js';
 
 ctxout = jsonstream.jsonout_new(false, 4, function(ctx, str) {
   process.stdout.write(str);

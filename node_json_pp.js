@@ -1,5 +1,5 @@
-const nodejsonfrag = require('.');
-const fs = require('fs');
+import * as nodejsonfrag from './index.js';
+import * as fs from 'fs';
 
 var args = process.argv.slice(2);
 var commentargcnt = 0;
@@ -89,7 +89,7 @@ const ctxout = nodejsonfrag.jsonout_new(use_tabs_for_indentation, indentation_le
   process.stdout.write(str);
 }, null);
 
-handler = {
+var handler = {
   start_dict: function(ctx, key)
   {
     if (key != null)

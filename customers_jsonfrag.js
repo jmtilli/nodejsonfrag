@@ -1,5 +1,5 @@
-const nodejsonfrag = require('.');
-const fs = require('fs');
+import * as nodejsonfrag from './index.js';
+import * as fs from 'fs';
 
 function my_start_dict(ctx, key)
 {

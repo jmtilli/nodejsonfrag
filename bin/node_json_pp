@@ -1,2 +1,2 @@
-#!/usr/bin/env node
-require('../node_json_pp.js');
+#!/bin/sh
+node "$(dirname "$(realpath "$0")")/../node_json_pp.js" "$@"

@@ -1,10 +1,10 @@
-const nodejsonfrag = require('.');
-const fs = require('fs');
+import * as nodejsonfrag from './index.js';
+import * as fs from 'fs';
 
 var context = [];
 var c = {};
 var cs = {};
-handler = {
+var handler = {
   start_dict: function(ctx, key)
   {
     context.push(key);

@@ -1,32 +1,32 @@
-JSONSTREAM_MODE_KEYSTRING = 1;
-JSONSTREAM_MODE_KEYSTRING_ESCAPE = 2;
-JSONSTREAM_MODE_KEYSTRING_UESCAPE = 3;
-JSONSTREAM_MODE_STRING = 4;
-JSONSTREAM_MODE_STRING_ESCAPE = 5;
-JSONSTREAM_MODE_STRING_UESCAPE = 6;
-JSONSTREAM_MODE_TRUE = 7;
-JSONSTREAM_MODE_FALSE = 8;
-JSONSTREAM_MODE_NULL = 9;
-JSONSTREAM_MODE_FIRSTKEY = 10;
-JSONSTREAM_MODE_KEY = 11;
-JSONSTREAM_MODE_FIRSTVAL = 12;
-JSONSTREAM_MODE_VAL = 13;
-JSONSTREAM_MODE_COLON = 14;
-JSONSTREAM_MODE_COMMA = 15;
-JSONSTREAM_MODE_NUMBER = 16;
-JSONSTREAM_MODE_ENDWS = 17;
+const JSONSTREAM_MODE_KEYSTRING = 1;
+const JSONSTREAM_MODE_KEYSTRING_ESCAPE = 2;
+const JSONSTREAM_MODE_KEYSTRING_UESCAPE = 3;
+const JSONSTREAM_MODE_STRING = 4;
+const JSONSTREAM_MODE_STRING_ESCAPE = 5;
+const JSONSTREAM_MODE_STRING_UESCAPE = 6;
+const JSONSTREAM_MODE_TRUE = 7;
+const JSONSTREAM_MODE_FALSE = 8;
+const JSONSTREAM_MODE_NULL = 9;
+const JSONSTREAM_MODE_FIRSTKEY = 10;
+const JSONSTREAM_MODE_KEY = 11;
+const JSONSTREAM_MODE_FIRSTVAL = 12;
+const JSONSTREAM_MODE_VAL = 13;
+const JSONSTREAM_MODE_COLON = 14;
+const JSONSTREAM_MODE_COMMA = 15;
+const JSONSTREAM_MODE_NUMBER = 16;
+const JSONSTREAM_MODE_ENDWS = 17;
 
-JSONNUM_START = 101;
-JSONNUM_MINUS_NOT_PERMITTED = 102;
-JSONNUM_NUMBER_DID_NOT_START_WITH_ZERO = 103;
-JSONNUM_NUMBER_DONE = 104;
-JSONNUM_PERIOD_SEEN = 105;
-JSONNUM_PERIOD_DIGIT_SEEN = 106;
-JSONNUM_FRACTION_SEEN = 107;
-JSONNUM_E_SEEN = 108;
-JSONNUM_EPLUSMINUS_SEEN = 109;
-JSONNUM_EXPONENT_DIGIT_SEEN = 110;
-JSONNUM_EXPONENT_SEEN = 111;
+const JSONNUM_START = 101;
+const JSONNUM_MINUS_NOT_PERMITTED = 102;
+const JSONNUM_NUMBER_DID_NOT_START_WITH_ZERO = 103;
+const JSONNUM_NUMBER_DONE = 104;
+const JSONNUM_PERIOD_SEEN = 105;
+const JSONNUM_PERIOD_DIGIT_SEEN = 106;
+const JSONNUM_FRACTION_SEEN = 107;
+const JSONNUM_E_SEEN = 108;
+const JSONNUM_EPLUSMINUS_SEEN = 109;
+const JSONNUM_EXPONENT_DIGIT_SEEN = 110;
+const JSONNUM_EXPONENT_SEEN = 111;
 
 
 /*
@@ -42,7 +42,7 @@ JSONNUM_EXPONENT_SEEN = 111;
      .handle_comment(jsonstream, comman_seen, comment, is_multiline)
    }
  */
-function jsonstream_new(handler)
+export function jsonstream_new(handler)
 {
 	var result = {};
 	result.mode = JSONSTREAM_MODE_VAL;
@@ -62,11 +62,11 @@ function jsonstream_new(handler)
 	result.is_integer = false;
 	return result;
 }
-function jsonstream_allow_comments(jsonstream)
+export function jsonstream_allow_comments(jsonstream)
 {
 	jsonstream.comments = true;
 }
-function jsonstream_allow_trailing_comma(jsonstream)
+export function jsonstream_allow_trailing_comma(jsonstream)
 {
 	jsonstream.allow_trailing_comma = true;
 }
@@ -225,7 +225,7 @@ function jsonstream_strip_comment(jsonstream, buf, start, i, sz, eof)
 		throw new Error("Unterminated beginning of comment");
 	}
 }
-function jsonstream_feed(jsonstream, buf, start, sz, eof)
+export function jsonstream_feed(jsonstream, buf, start, sz, eof)
 {
 	var i;
 	if (sz < 0 || start+sz > buf.length)
@@ -671,7 +671,7 @@ function jsonstream_feed(jsonstream, buf, start, sz, eof)
 				jsonstream_put_keystack_2(jsonstream);
 				continue;
 			}
-			ret = jsonstream.handler.start_array(jsonstream, jsonstream_get_key(jsonstream));
+			var ret = jsonstream.handler.start_array(jsonstream, jsonstream_get_key(jsonstream));
 			jsonstream_put_keystack_2(jsonstream);
 			if (ret != 0)
 			{
@@ -902,7 +902,7 @@ function jsonstream_feed(jsonstream, buf, start, sz, eof)
 				jsonstream.errloc = i;
 				throw new Error("invalid number");
 			}
-			numval = Number(jsonstream.val);
+			var numval = Number(jsonstream.val);
 			jsonstream.mode = JSONSTREAM_MODE_COMMA;
 			i--;
 			if (!jsonstream.handler.handle_number)
@@ -971,7 +971,7 @@ function jsonstream_feed(jsonstream, buf, start, sz, eof)
 	}
 	return -1;
 }
-function jsonstream_is_valid_json_errloc(x, allow_comments, allow_trailing_comma)
+export function jsonstream_is_valid_json_errloc(x, allow_comments, allow_trailing_comma)
 {
 	var handler = {};
 	var ctx = jsonstream_new(handler);
@@ -994,7 +994,7 @@ function jsonstream_is_valid_json_errloc(x, allow_comments, allow_trailing_comma
 		        "errcol": lines[lines.length-1].length};
 	}
 }
-function jsonstream_is_valid_json(x, allow_comments, allow_trailing_comma)
+export function jsonstream_is_valid_json(x, allow_comments, allow_trailing_comma)
 {
 	var handler = {};
 	var ctx = jsonstream_new(handler);
@@ -1014,7 +1014,7 @@ function jsonstream_is_valid_json(x, allow_comments, allow_trailing_comma)
 		return false;
 	}
 }
-function jsonstream_tree_parse(x, allow_comments, allow_trailing_comma)
+export function jsonstream_tree_parse(x, allow_comments, allow_trailing_comma)
 {
 	var handler = {};
 	var result = null;
@@ -1168,7 +1168,7 @@ const indent_struct = [
 ];
 
 // datasink: function(datasinkctx, str)
-function jsonout_new(tabs, indentamount, datasink, datasinkctx)
+export function jsonout_new(tabs, indentamount, datasink, datasinkctx)
 {
 	var result = {};
 	result.commanlindentchars = indent_struct[tabs?0:1].buf;
@@ -1269,7 +1269,7 @@ function jsonout_stringify_one(ctx, key, o)
 		throw new Error("Invalid JSON type");
 	}
 }
-function jsonout_stringify(tabs, indentamount, o)
+export function jsonout_stringify(tabs, indentamount, o)
 {
 	var outs = [];
 	var st = [];
@@ -1412,7 +1412,7 @@ function jsonout_internal_put_string(ctx, val)
 {
 	ctx.datasink(ctx.datasinkctx, JSON.stringify(String(val)));
 }
-function jsonout_put_start_dict(ctx, key)
+export function jsonout_put_start_dict(ctx, key)
 {
 	if (ctx.veryfirst)
 	{
@@ -1431,7 +1431,7 @@ function jsonout_put_start_dict(ctx, key)
 		ctx.datasink(ctx.datasinkctx, ": {");
 	}
 }
-function jsonout_put_start_array(ctx, key)
+export function jsonout_put_start_array(ctx, key)
 {
 	if (ctx.veryfirst)
 	{
@@ -1450,7 +1450,7 @@ function jsonout_put_start_array(ctx, key)
 		ctx.datasink(ctx.datasinkctx, ": [");
 	}
 }
-function jsonout_add_start_dict(ctx)
+export function jsonout_add_start_dict(ctx)
 {
 	if (!ctx.veryfirst)
 	{
@@ -1461,7 +1461,7 @@ function jsonout_add_start_dict(ctx)
 	ctx.curindentlevel++;
 	ctx.datasink(ctx.datasinkctx, "{");
 }
-function jsonout_add_start_array(ctx)
+export function jsonout_add_start_array(ctx)
 {
 	if (!ctx.veryfirst)
 	{
@@ -1472,7 +1472,7 @@ function jsonout_add_start_array(ctx)
 	ctx.curindentlevel++;
 	ctx.datasink(ctx.datasinkctx, "[");
 }
-function jsonout_end_dict(ctx)
+export function jsonout_end_dict(ctx)
 {
 	if (ctx.curindentlevel == 0)
 	{
@@ -1486,7 +1486,7 @@ function jsonout_end_dict(ctx)
 	ctx.first = false;
 	ctx.datasink(ctx.datasinkctx, "}");
 }
-function jsonout_end_array(ctx)
+export function jsonout_end_array(ctx)
 {
 	if (ctx.curindentlevel == 0)
 	{
@@ -1500,7 +1500,7 @@ function jsonout_end_array(ctx)
 	ctx.first = false;
 	ctx.datasink(ctx.datasinkctx, "]");
 }
-function jsonout_put_string(ctx, key, val)
+export function jsonout_put_string(ctx, key, val)
 {
 	if (ctx.veryfirst)
 	{
@@ -1519,7 +1519,7 @@ function jsonout_put_string(ctx, key, val)
 	ctx.first = false;
 	jsonout_internal_put_string(ctx, val);
 }
-function jsonout_add_string(ctx, val)
+export function jsonout_add_string(ctx, val)
 {
 	if (!ctx.veryfirst)
 	{
@@ -1529,7 +1529,7 @@ function jsonout_add_string(ctx, val)
 	jsonout_internal_put_string(ctx, val);
 	ctx.first = false;
 }
-function jsonout_put_boolean(ctx, key, val)
+export function jsonout_put_boolean(ctx, key, val)
 {
 	if (ctx.veryfirst)
 	{
@@ -1547,7 +1547,7 @@ function jsonout_put_boolean(ctx, key, val)
 	}
 	ctx.first = false;
 }
-function jsonout_add_boolean(ctx, val)
+export function jsonout_add_boolean(ctx, val)
 {
 	if (!ctx.veryfirst)
 	{
@@ -1564,7 +1564,7 @@ function jsonout_add_boolean(ctx, val)
 	}
 	ctx.first = false;
 }
-function jsonout_put_null(ctx, key)
+export function jsonout_put_null(ctx, key)
 {
 	if (ctx.veryfirst)
 	{
@@ -1575,7 +1575,7 @@ function jsonout_put_null(ctx, key)
 	ctx.datasink(ctx.datasinkctx, (ctx.indentamount == null) ? ":null" : ": null");
 	ctx.first = false;
 }
-function jsonout_add_null(ctx)
+export function jsonout_add_null(ctx)
 {
 	if (!ctx.veryfirst)
 	{
@@ -1586,7 +1586,7 @@ function jsonout_add_null(ctx)
 	ctx.first = false;
 }
 
-function jsonout_comment(ctx, comma_seen, comment, force_multiline)
+export function jsonout_comment(ctx, comma_seen, comment, force_multiline)
 {
 	if (comment.indexOf("\r") != -1 || comment.indexOf("\n") != -1)
 	{
@@ -1624,7 +1624,7 @@ function jsonout_comment(ctx, comma_seen, comment, force_multiline)
 	ctx.commentnewline = true;
 }
 
-function jsonout_put_number(ctx, key, val)
+export function jsonout_put_number(ctx, key, val)
 {
 	if (ctx.veryfirst)
 	{
@@ -1643,7 +1643,7 @@ function jsonout_put_number(ctx, key, val)
 	ctx.first = false;
 	jsonout_internal_put_number(ctx, val);
 }
-function jsonout_put_number_ex(ctx, key, val)
+export function jsonout_put_number_ex(ctx, key, val)
 {
 	if (ctx.veryfirst)
 	{
@@ -1662,7 +1662,7 @@ function jsonout_put_number_ex(ctx, key, val)
 	ctx.first = false;
 	jsonout_internal_put_number_ex(ctx, val);
 }
-function jsonout_put_flop(ctx, key, val)
+export function jsonout_put_flop(ctx, key, val)
 {
 	if (ctx.veryfirst)
 	{
@@ -1681,7 +1681,7 @@ function jsonout_put_flop(ctx, key, val)
 	ctx.first = false;
 	jsonout_internal_put_flop(ctx, val);
 }
-function jsonout_put_flop_ex(ctx, key, val)
+export function jsonout_put_flop_ex(ctx, key, val)
 {
 	if (ctx.veryfirst)
 	{
@@ -1701,7 +1701,7 @@ function jsonout_put_flop_ex(ctx, key, val)
 	jsonout_internal_put_flop_ex(ctx, val);
 }
 
-function jsonout_add_number(ctx, val)
+export function jsonout_add_number(ctx, val)
 {
 	if (!ctx.veryfirst)
 	{
@@ -1711,7 +1711,7 @@ function jsonout_add_number(ctx, val)
 	jsonout_internal_put_number(ctx, val);
 	ctx.first = false;
 }
-function jsonout_add_number_ex(ctx, val)
+export function jsonout_add_number_ex(ctx, val)
 {
 	if (!ctx.veryfirst)
 	{
@@ -1721,7 +1721,7 @@ function jsonout_add_number_ex(ctx, val)
 	jsonout_internal_put_number_ex(ctx, val);
 	ctx.first = false;
 }
-function jsonout_add_flop(ctx, val)
+export function jsonout_add_flop(ctx, val)
 {
 	if (!ctx.veryfirst)
 	{
@@ -1731,7 +1731,7 @@ function jsonout_add_flop(ctx, val)
 	jsonout_internal_put_flop(ctx, val);
 	ctx.first = false;
 }
-function jsonout_add_flop_ex(ctx, val)
+export function jsonout_add_flop_ex(ctx, val)
 {
 	if (!ctx.veryfirst)
 	{
@@ -1742,7 +1742,7 @@ function jsonout_add_flop_ex(ctx, val)
 	ctx.first = false;
 }
 
-function jsonfrag_is(ctx, stack)
+export function jsonfrag_is(ctx, stack)
 {
 	var i;
 	if (ctx.jsonfrag.keystack.length != stack.length+1)
@@ -1759,7 +1759,7 @@ function jsonfrag_is(ctx, stack)
 	}
 	return true;
 }
-function jsonfrag_start_fragment_collection(ctx)
+export function jsonfrag_start_fragment_collection(ctx)
 {
 	if (ctx.jsonfrag.isdict)
 	{
@@ -1939,7 +1939,7 @@ function jsonfrag_handle_boolean(ctx, key, val)
 	}
 }
 
-function jsonfrag_new(fraghandler)
+export function jsonfrag_new(fraghandler)
 {
 	var evhandler = {
 		'start_dict': jsonfrag_start_dict,
@@ -1958,7 +1958,7 @@ function jsonfrag_new(fraghandler)
 	ctx.jsonfrag.keystack = [];
 	return ctx;
 }
-function jsonfrag_parse(s, fraghandler, allow_comments, allow_trailing_comma)
+export function jsonfrag_parse(s, fraghandler, allow_comments, allow_trailing_comma)
 {
 	var ctx = jsonfrag_new(fraghandler);
 	if (allow_comments)
@@ -1980,7 +1980,7 @@ function jsonfrag_parse(s, fraghandler, allow_comments, allow_trailing_comma)
 //   "allow_comments": true,
 //   "output_comments": true
 // }
-function jsonstream_pretty_print(str, settings)
+export function jsonstream_pretty_print(str, settings)
 {
 	if (!settings) settings = {};
 	var strout = '';
@@ -2097,47 +2097,3 @@ function jsonstream_pretty_print(str, settings)
 	jsonstream_feed(ctx, str, 0, str.length, true);
 	return strout;
 }
-
-module.exports = {
-	jsonstream_new,
-	jsonstream_allow_comments,
-	jsonstream_allow_trailing_comma,
-	jsonstream_feed,
-	//
-	jsonstream_is_valid_json_errloc,
-	jsonstream_is_valid_json,
-	//
-	jsonstream_tree_parse,
-	//
-	jsonstream_pretty_print,
-	//
-	jsonout_stringify,
-	//
-	jsonfrag_is,
-	jsonfrag_start_fragment_collection,
-	jsonfrag_new,
-	jsonfrag_parse,
-	//
-	jsonout_new,
-	jsonout_put_start_dict,
-	jsonout_put_start_array,
-	jsonout_add_start_dict,
-	jsonout_add_start_array,
-	jsonout_end_dict,
-	jsonout_end_array,
-	jsonout_put_string,
-	jsonout_add_string,
-	jsonout_put_boolean,
-	jsonout_add_boolean,
-	jsonout_put_null,
-	jsonout_add_null,
-	jsonout_comment,
-	jsonout_put_number,
-	jsonout_put_number_ex, // convert NaN/Inf to null
-	jsonout_put_flop,
-	jsonout_put_flop_ex, // convert NaN/Inf to null
-	jsonout_add_number,
-	jsonout_add_number_ex, // convert NaN/Inf to null
-	jsonout_add_flop,
-	jsonout_add_flop_ex, // convert NaN/Inf to null
-};
